@@ -1,5 +1,5 @@
-#ifndef TrashMCProcessor_h
-#define TrashMCProcessor_h 1
+#ifndef TTBarProcessor_h
+#define TTBarProcessor_h 1
 #include <iostream>
 #include <vector>
 //#include <EVENT/LCObject.h>
@@ -28,14 +28,14 @@ using namespace marlin ;
 
 namespace TTbarAnalysis 
 {
-	class TrashMCProcessor : public Processor {
+	class TTBarProcessor : public Processor {
 	  
 	 public:
 	  
-	  virtual Processor*  newProcessor() { return new TrashMCProcessor ; }
+	  virtual Processor*  newProcessor() { return new TTBarProcessor ; }
 	  
 	  
-	  TrashMCProcessor() ;
+	  TTBarProcessor() ;
 	  
 	  /** Called at the begin of the job before anything is read.
 	   * Use to initialize the processor, e.g. book histograms.
@@ -71,6 +71,7 @@ namespace TTbarAnalysis
 
 	  /** Input collection name.
 	   */
+	  std::string _hfilename;
 	  std::string _colName ;
 	  std::string _MCColName ;
 	  std::string _JetsColName ;
