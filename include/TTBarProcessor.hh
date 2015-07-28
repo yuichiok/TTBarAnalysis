@@ -100,7 +100,7 @@ namespace TTbarAnalysis
 	  float _W2mass;
 	  float _W2momentum;
 	  float _W2costheta;
-	  float _Top1charge;
+	  int _Top1charge;
 	  float _Top1btag;
 	  float _Top1bmomentum;
 	  int _Top1bntracks;
@@ -118,9 +118,12 @@ namespace TTbarAnalysis
 	  float _chiHad;
 
 	  float _MCTopmomentum;
+	  float _MCTopmass;
 	  float _MCTopcostheta;
 	  float _MCTopBarmomentum;
+	  float _MCTopBarmass;
 	  float _MCTopBarcostheta;
+	  float _qMCcostheta[2];
 
 	  int _nRun ;
 	  int _nEvt ;

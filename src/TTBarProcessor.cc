@@ -82,8 +82,22 @@ namespace TTbarAnalysis
 
 		_hTree = new TTree( "Stats", "tree" );
 
+		_hTree->Branch("MCTopmass", &_MCTopmass, "MCTopmass/F");
+		_hTree->Branch("MCTopmomentum", &_MCTopmomentum, "MCTopmomentum/F");
+		_hTree->Branch("MCTopcostheta", &_MCTopcostheta, "MCTopcostheta/F");
+		_hTree->Branch("MCTopBarmass", &_MCTopBarmass, "MCTopBarmass/F");
+		_hTree->Branch("MCTopBarmomentum", &_MCTopBarmomentum, "MCTopBarmomentum/F");
+		_hTree->Branch("MCTopBarcostheta", &_MCTopBarcostheta, "MCTopBarcostheta/F");
+		_hTree->Branch("qMCcostheta", _qMCcostheta, "qMCcostheta[2]/F");
 		_hTree->Branch("W1mass", &_W1mass, "W1mass/F");
 		_hTree->Branch("Top1mass", &_Top1mass, "Top1mass/F");
+		_hTree->Branch("Top1charge", &_Top1charge, "Top1charge/I");
+		_hTree->Branch("Top1bmomentum", &_Top1bmomentum, "Top1bmomentum/F");
+		_hTree->Branch("Top1costheta", &_Top1costheta, "Top1costheta/F");
+		_hTree->Branch("Top1bntracks", &_Top1bntracks, "Top1bntracks/I");
+		_hTree->Branch("Top2bmomentum", &_Top2bmomentum, "Top2bmomentum/F");
+		_hTree->Branch("Top2bntracks", &_Top2bntracks, "Top2bntracks/I");
+		_hTree->Branch("qCostheta", _qCostheta, "qCostheta[2]/F");
 		_hTree->Branch("chiHad", &_chiHad, "chiHad/F");
 		
 		//_hTree->Branch("detectedTotal", &_detectedTotal, "detectedTotal/I");
@@ -92,6 +106,34 @@ namespace TTbarAnalysis
 	{ 
 		_nRun++ ;
 	} 
+	void TTBarProcessor::AnalyseGenerator(MCOperator & opera)
+	{
+		std::vector< EVENT::MCParticle * > mctops = opera.GetTopPairParticles();
+
+		if (mctops.size() < 2) 
+		{
+			_mctag = 0;
+			return;
+		}
+		MCParticle * top = mctops[0];
+		MCParticle * topbar = mctops[1];
+		vector<float> direction = MathOperator::getDirection(top->getMomentum());
+		vector<float> directionbar = MathOperator::getDirection(topbar->getMomentum());
+		_MCTopmass = top->getMass();
+		_MCTopBarmass = topbar->getMass();
+		_MCTopmomentum = MathOperator::getModule(top->getMomentum());
+		_MCTopBarmomentum = MathOperator::getModule(topbar->getMomentum());
+		_MCTopcostheta = std::cos( MathOperator::getAngles(direction)[1] );
+		_MCTopBarcostheta = std::cos( MathOperator::getAngles(directionbar)[1] );
+		std::cout << "Top costheta: " << _MCTopcostheta << "\n";
+		std::cout << "TopBar costheta: " << _MCTopBarcostheta << "\n";
+		_qMCcostheta[0] = _MCTopcostheta;
+		_qMCcostheta[1] = -_MCTopBarcostheta;
+		if (_MCTopmass > 170.0 &&_MCTopmass < 181.0 && _MCTopBarmass > 170.0 &&_MCTopBarmass < 181.0) 
+		{
+			_mctag = 1;
+		}
+	}
 	void TTBarProcessor::processEvent( LCEvent * evt )
 	{
 		try
@@ -102,6 +144,8 @@ namespace TTbarAnalysis
 			LCCollection * jetcol = evt->getCollection(_JetsColName);
 			LCCollection * jetrelcol = evt->getCollection(_JetsRelColName);
 			LCCollection * mccol = evt->getCollection(_MCColName);
+			MCOperator opera(mccol);
+			AnalyseGenerator(opera);
 			vector< RecoJet * > * jets = getJets(jetcol, jetrelcol);
 			vector< RecoJet * > * wjets = new vector< RecoJet * >();
 			vector< RecoJet * > * bjets = getBTagJets(jets, wjets);
@@ -114,7 +158,7 @@ namespace TTbarAnalysis
 				std::cout << "No B jets!!! \n";
 				return;
 			}
-			if (bjets->at(0)->GetBTag() < 0.8 && bjets->at(1)->GetBTag() < 0.8) 
+			if (bjets->at(0)->GetBTag() < _highBTagCutparameter && bjets->at(1)->GetBTag() < _highBTagCutparameter) 
 			{
 				std::cout << "No high B jets!!! \n";
 				return;
@@ -122,6 +166,8 @@ namespace TTbarAnalysis
 			float chimin = 100000.0;
 			RecoJet * wHadronic = new TopQuark(wjets->at(0), wjets->at(1));
 			TopQuark * topHadronic = NULL;
+			TopQuark * topLeptonic = NULL;
+			int chosen = -1;
 			for (unsigned int i = 0; i < bjets->size(); i++) 
 			{
 				TopQuark * candidate = new TopQuark(bjets->at(i), wHadronic);
@@ -130,11 +176,21 @@ namespace TTbarAnalysis
 				{
 					topHadronic = candidate;
 					chimin = chi2;
+					chosen = i;
 				}
+			}
+			if (chosen) 
+			{
+				topLeptonic = new TopQuark(bjets->at(0));
+			}
+			else 
+			{
+				topLeptonic = new TopQuark(bjets->at(1));
 			}
 			_W1mass = wHadronic->getMass();
 			_Top1mass = topHadronic->getMass();
 			_chiHad = chimin;
+			ComputeCharge(topHadronic, topLeptonic);
 			_hTree->Fill();
 			ClearVariables();
 		}
@@ -145,6 +201,79 @@ namespace TTbarAnalysis
 	}
 	void TTBarProcessor:: check( LCEvent * evt ) 
 	{
+	}
+	void TTBarProcessor::ComputeCharge(TopQuark * top1, TopQuark * top2)
+	{
+		//Top hadronic
+		_Top1charge = top1->GetHadronCharge();
+		_Top1bmomentum = top1->GetHadronMomentum();
+		vector<float> direction = MathOperator::getDirection(top1->getMomentum());
+		_Top1costheta =  std::cos( MathOperator::getAngles(direction)[1] );
+		_Top1bntracks = top1->GetNumberOfVertexParticles();
+		_Top1btag = top1->GetBTag();
+		std::cout << "Top charge: " << _Top1charge
+			  << " top pB: " << _Top1bmomentum
+			  << " top bntracks: " << _Top1bntracks
+			  << " top btag: " << _Top1btag
+			  << " top costheta: " << _Top1costheta
+			  << "\n";
+		//Top Leptonic
+		_Top2charge = top2->GetHadronCharge();
+		_Top2bmomentum = top2->GetHadronMomentum();
+		vector<float> direction2 = MathOperator::getDirection(top2->getMomentum());
+		_Top2costheta =  std::cos( MathOperator::getAngles(direction2)[1] );
+		_Top2bntracks = top2->GetNumberOfVertexParticles();
+		_Top2btag = top2->GetBTag();
+		std::cout << "Top charge: " << _Top2charge
+			  << " top pB: " << _Top2bmomentum
+			  << " top bntracks: " << _Top2bntracks
+			  << " top btag: " << _Top2btag
+			  << " top costheta: " << _Top2costheta
+			  << "\n";
+		
+		bool trustTop1 = false;
+		bool trustTop2 = false;
+
+		if (_Top1bmomentum > 20.0 && abs( _Top1charge) > 0 && _Top1bntracks > 2 && _Top1bntracks < 7 && _Top1btag > 0.9 ) 
+		{
+			std::cout << "Use top 1!\n";
+			trustTop1 = true;
+		}
+		if (_Top2bmomentum > 20.0 && abs( _Top2charge) > 0 && _Top2bntracks > 2 && _Top2bntracks < 7 && _Top2btag > 0.9 ) 
+		{
+			std::cout << "Use top 2!\n";
+			trustTop2 = true;
+		}
+		if (trustTop1 && !trustTop2) 
+		{
+			_qCostheta[0] = (_Top1charge < 0)? _Top1costheta : -_Top1costheta;
+		}
+		if (trustTop2 && !trustTop1) 
+		{
+			_qCostheta[0] = (_Top2charge > 0)? _Top1costheta : -_Top1costheta;
+		}
+		if (trustTop1 && trustTop2) 
+		{
+			if (_Top1bntracks < _Top2bntracks) 
+			{
+				//_qCostheta[0] = (_Top1charge < 0)? _Top1costheta : -_Top1costheta;
+			}
+			if (_Top2bntracks > _Top1bntracks) 
+			{
+				//_qCostheta[0] = (_Top2charge > 0)? _Top1costheta : -_Top1costheta;
+			}
+			if (_Top2bntracks == _Top1bntracks) 
+			{
+				if (_Top1bmomentum > _Top2bmomentum) 
+				{
+					//_qCostheta[0] = (_Top1charge < 0)? _Top1costheta : -_Top1costheta;
+				}
+				else 
+				{
+					//_qCostheta[0] = (_Top2charge > 0)? _Top1costheta : -_Top1costheta;
+				}
+			}
+		}
 	}
 	float TTBarProcessor::getChi2(TopQuark * candidate)
 	{
@@ -291,9 +420,20 @@ namespace TTbarAnalysis
 
 	void TTBarProcessor::ClearVariables()
 	{
+		_MCTopmass = -1.0;
+		_MCTopBarmass = -1.0;
+		_MCTopmomentum = -1.0;
+		_MCTopBarmomentum = -1.0;
+		_MCTopcostheta = -2.0;
+		_MCTopBarcostheta = -2.0;
+		_qMCcostheta[0] = -2.0;
+		_qMCcostheta[1] = -2.0;
+
 		_Top1mass = -1.0;
 		_W1mass = -1.0;
 		_chiHad = -1.0;
+		_qCostheta[0] = -2.0;
+		_qCostheta[1] = -2.0;
 	}
 
 	void TTBarProcessor::end()
