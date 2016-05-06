@@ -30,16 +30,20 @@ namespace TTbarAnalysis
 		//
 			//DO NOT USE THAT ON T-QUARKS!!!
 			std::vector< EVENT::MCParticle * > GetPairParticles(int pdg);
-			std::vector< EVENT::MCParticle * > GetTopPairParticles();
+			std::vector< EVENT::MCParticle * > GetTopPairParticles(float & topBangle, float & topBarBangle);
 			std::vector< EVENT::MCParticle * > GetFinalState();
 			EVENT::MCParticle * CombineParticles(EVENT::MCParticle * b, EVENT::MCParticle * w);
 			EVENT::MCParticle * FindParticle(int pdg);
+			std::vector< EVENT::MCParticle * > GetBquarkPair();
+			EVENT::MCParticle * GetNeutrino();
 
 		private:
 		//
 		//	Data
 		//
 			EVENT::LCCollection * myCollection;
+			std::vector< EVENT::MCParticle * > myBquarkPair;
+			EVENT::MCParticle * myNeutrino;
 		//
 		//	Private methods
 		//

@@ -5,6 +5,7 @@ namespace TTbarAnalysis
 {
 	TopQuark::TopQuark(RecoJet * b, ReconstructedParticle * w)
 	{
+		myResultTVCM = 0;
 		myB = b;
 		myW = w;
 		addParticle (b);
@@ -35,6 +36,7 @@ namespace TTbarAnalysis
 	}
 	TopQuark::TopQuark(RecoJet * b)
 	{
+		myResultTVCM = 0;
 		myB = b;
 		addParticle (b);
 		for (int i = 0; i < 3; i++) 
@@ -50,7 +52,7 @@ namespace TTbarAnalysis
 		double pT = MathOperator::getModule(_momentum);
 		std::cout << "Top charge: " << charge << " p: " << pT << " m: " << _mass <<"\n";
 	}
-	ReconstructedParticle * TopQuark::GetB()
+	RecoJet * TopQuark::GetB()
 	{
 		return myB;
 	}
@@ -63,5 +65,17 @@ namespace TTbarAnalysis
 		return _mass;
 	}
 	bool IsHadronic();
+	int TopQuark::GetResultTVCM()
+	{
+		return myResultTVCM;
+	}
+	void TopQuark::SetResultTVCM(int used)
+	{
+		myResultTVCM = used;
+	}
+	TopCharge & TopQuark::GetComputedCharge()
+	{
+		return myComputedCharge;
+	}
 	
 } /* TTBarAnalisys */

@@ -9,6 +9,7 @@ namespace TTbarAnalysis
 	MCOperator:: MCOperator (LCCollection * col)
 	{
 		myCollection = col;
+		myNeutrino = NULL;
 	}
 	//DO NOT USE THAT ON T-QUARKS!!!
 	vector< MCParticle * > MCOperator::GetPairParticles(int pdg)
@@ -44,7 +45,7 @@ namespace TTbarAnalysis
 		}
 		return pair;
 	}
-	vector< MCParticle * > MCOperator::GetTopPairParticles()
+	vector< MCParticle * > MCOperator::GetTopPairParticles(float & topBangle, float & topcosWb)
 	{
 		vector< MCParticle * > pair;
 		MCParticle * b = FindParticle(5);
@@ -89,11 +90,19 @@ namespace TTbarAnalysis
 				}
 			}
 		}
+		myBquarkPair.push_back(b);
+		myBquarkPair.push_back(bbar);
 		MCParticle * top = CombineParticles(b, wplus);
+		topBangle = MathOperator::getAngle(top->getMomentum(), b->getMomentum());
 		MCParticle * topbar = CombineParticles(bbar, wminus);
+		topcosWb = std::cos( MathOperator::getAngle(wplus->getMomentum(), b->getMomentum()));
 		pair.push_back(top);
 		pair.push_back(topbar);
 		return pair;
+	}
+	vector< MCParticle * > MCOperator::GetBquarkPair()
+	{
+		return myBquarkPair;
 	}
 	MCParticle * MCOperator::CombineParticles(EVENT::MCParticle * b, EVENT::MCParticle * w)
 	{
@@ -128,6 +137,12 @@ namespace TTbarAnalysis
 				{
 					result.push_back(daughters[i]);
 				}
+				if (abs(daughters[i]->getPDG()) == 12 ||
+				    abs(daughters[i]->getPDG()) == 14 ||	
+				    abs(daughters[i]->getPDG()) == 16) 
+				{
+					myNeutrino = daughters[i];
+				}
 			}
 		}
 		else 
@@ -154,5 +169,9 @@ namespace TTbarAnalysis
 			std::cout << "Particle " << pdg << " not found!\n";
 		}
 		return result;
+	}
+	MCParticle * MCOperator::GetNeutrino()
+	{
+		return myNeutrino;
 	}
 }

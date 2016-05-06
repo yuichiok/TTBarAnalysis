@@ -76,7 +76,7 @@ namespace TTbarAnalysis
 	float RecoJet::GetHadronCharge()
 	{
 		float charge = -5.0;
-		if (myRecoVertices) 
+		if (myRecoVertices && myRecoVertices->size() > 0) 
 		{
 			charge = 0.0;
 			for (unsigned int i = 0; i < myRecoVertices->size(); i++) 
@@ -99,6 +99,54 @@ namespace TTbarAnalysis
 		}
 		return momentum;
 	}
+	float RecoJet::GetMinHadronDistance()
+	{
+		float mindistance = 1000.;
+		if (myRecoVertices && myRecoVertices->size() > 0) 
+		{
+			for (int i = 0; i < myRecoVertices->size(); i++) 
+			{
+				float distance = MathOperator::getModule(myRecoVertices->at(i)->getPosition()); // CRUNCH!!!
+				if (distance < mindistance) 
+				{
+					mindistance = distance;
+				}
+			}
+		}
+		return mindistance;
+	}
+	float RecoJet::GetMaxHadronDistance()
+	{
+		float maxdistance = 0.;
+		if (myRecoVertices && myRecoVertices->size() > 0) 
+		{
+			for (int i = 0; i < myRecoVertices->size(); i++) 
+			{
+				float distance = MathOperator::getModule(myRecoVertices->at(i)->getPosition()); // CRUNCH!!!
+				if (distance > maxdistance) 
+				{
+					maxdistance = distance;
+				}
+			}
+		}
+		return maxdistance;
+	}
+	const float RecoJet::__GetMCCharge() const
+	{
+		return myMCCharge;
+	}
+	void RecoJet::__SetMCCharge( float charge)
+	{
+		myMCCharge = charge;
+	}
+	const int RecoJet::__GetMCNtracks() const
+	{
+		return myMCNtracks;
+	}
+	void RecoJet::__SetMCNtracks(int n)
+	{
+		myMCNtracks = n;
+	}
 	float RecoJet::GetHadronMass()
 	{
 		float mass = -1.0;
@@ -120,6 +168,14 @@ namespace TTbarAnalysis
 	void RecoJet::SetMCPDG(int pdg)
 	{
 		myMCPDG = pdg;
+	}
+	const int RecoJet::__GetMCOscillation() const
+	{
+		return myMCOscillation;
+	}
+	void RecoJet::__SetMCOscillation(int n)
+	{
+		myMCOscillation = n;
 	}
 
 }

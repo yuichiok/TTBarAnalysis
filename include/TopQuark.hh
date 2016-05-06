@@ -8,6 +8,25 @@
 #define Top_Quark_h 1
 namespace TTbarAnalysis 
 {
+	struct TopCharge
+	{
+		TopCharge()
+		{
+			ByTVCM = NULL;
+			ByTrackCount = NULL;
+			ByLepton = NULL;
+		}
+		~TopCharge()
+		{
+			delete ByTVCM;
+			delete ByTrackCount;
+			delete ByLepton;
+		}
+
+		int * ByTVCM;
+		int * ByTrackCount;
+		int * ByLepton;
+	};
 	class TopQuark : public RecoJet
 	{
 		public:
@@ -20,20 +39,27 @@ namespace TTbarAnalysis
 		//
 			TopQuark (RecoJet * b, EVENT::ReconstructedParticle * w);
 			TopQuark (RecoJet * b);
-			virtual ~TopQuark () {};
+			virtual ~TopQuark () 
+			{
+			};
 		//
 		//	Methods
 		//
-			EVENT::ReconstructedParticle * GetB();
+			RecoJet * GetB();
 			EVENT::ReconstructedParticle * GetW();
 			float getMass();
+			int GetResultTVCM();
+			void SetResultTVCM(int used = 0);
 			bool IsHadronic();
+			TopCharge & GetComputedCharge();
 		private:
 		//
 		//	Data
 		//
-			EVENT::ReconstructedParticle * myB;
+			RecoJet * myB;
 			EVENT::ReconstructedParticle * myW;
+			int myResultTVCM;
+			TopCharge myComputedCharge;
 		//
 		//	Private methods
 		//

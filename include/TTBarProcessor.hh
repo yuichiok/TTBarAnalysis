@@ -1,6 +1,7 @@
 #ifndef TTBarProcessor_h
 #define TTBarProcessor_h 1
 #include <iostream>
+#include <sstream>
 #include <vector>
 //#include <EVENT/LCObject.h>
 #include <EVENT/LCCollection.h>
@@ -19,16 +20,26 @@
 #include <TTree.h>
 
 #include "MathOperator.hh"
+#include "VertexChargeOperator.hh"
 #include "MCOperator.hh"
 #include "TopQuark.hh"
 #include "RecoJet.hh"
+#include "TreeWriter.hh"
+#include "TreeStructures.hh"
 using namespace lcio ;
 using namespace marlin ;
 
 
 namespace TTbarAnalysis 
 {
-	class TTBarProcessor : public Processor {
+	enum ANALYSIS_TYPE
+	{
+		TTBarSemileptonic = 0,
+		TTBarHadronic = 1,
+		BBbar = 2
+	};
+	class TTBarProcessor : public Processor 
+	{
 	  
 	 public:
 	  
@@ -61,14 +72,26 @@ namespace TTbarAnalysis
 	  std::vector< Vertex * > * convert(const std::vector< LCObject * > & objs);
 	  std::vector< RecoJet * > * getBTagJets(std::vector< RecoJet * > * alljets, std::vector< RecoJet * > * wjets = NULL);
 	  std::vector< RecoJet * > * getJets(LCCollection * jetcol, LCCollection *jetrelcol);
-	  void AnalyseGenerator(MCOperator & opera);
+	  std::vector< EVENT::MCParticle * > AnalyseGenerator(MCOperator & opera);
+
+	  void AnalyseTTBarSemiLeptonic(LCEvent * evt);
+	  void AnalyseBBBar(LCEvent * evt);
+
+	  void Match(std::vector< EVENT::MCParticle * > & mctops, TopQuark * topHadronic,  TopQuark * top2 =NULL );
+	  void MatchB(std::vector< EVENT::MCParticle * > & mcbs, TopQuark * topHadronic, TopQuark * top2 =NULL, LCCollection * mcvtxcol = NULL);
 	  void PrintJet(RecoJet * jet);
 	  void PrintJets(std::vector< RecoJet * > *jets);
 	  void ComputeCharge(TopQuark * top, TopQuark * top2);
+	  void ComputeChargeLepton(TopQuark * top, TopQuark * top2);
+	  void __ComputeChargeCheat(TopQuark * top, TopQuark * top2);
+	  void test(TopQuark * top, TopQuark * top2);
 	  float getChi2(TopQuark * c);
+	  void DecideOnAsymmetry(TopQuark * top, TopQuark * top2);
 	  void ClearVariables();
+	  void PrintParticle(EVENT::ReconstructedParticle * particle);
+	  void ComputeChargeTVCM(TopQuark * top, TopQuark * top2, VertexChargeOperator & vtxOperator);
 	 protected:
-
+	  std::string intToStr(int * number);
 	  /** Input collection name.
 	   */
 	  std::string _hfilename;
@@ -78,6 +101,10 @@ namespace TTbarAnalysis
 	  std::string _JetsRelColName ;
 	  std::string _JetsVtxColName ;
 	  std::string _IsoLeptonColName;
+	  std::string _MCVtxColName ;
+	  std::string _colRelName;
+	  int _ePolarization;
+	  float _Ebeamparameter;
 	  float _lowBTagCutparameter;
 	  float _highBTagCutparameter;
 	  float _WMassparameter;
@@ -89,44 +116,20 @@ namespace TTbarAnalysis
 	  float _PStarSigmaparameter;
 	  float _CosbWparameter;
 	  float _CosbWSigmaparameter;
+	  float _GammaTparameter;
+	  float _GammaTSigmaparameter;
 	  
 	  TFile * _hfile;
 	  TTree * _hTree;
-	  int _mctag;
-	  int _recotag;
-	  float _W1mass;
-	  float _W1momentum;
-	  float _W1costheta;
-	  float _W2mass;
-	  float _W2momentum;
-	  float _W2costheta;
-	  int _Top1charge;
-	  float _Top1btag;
-	  float _Top1bmomentum;
-	  int _Top1bntracks;
-	  float _Top1mass;
-	  float _Top1momentum;
-	  float _Top1costheta;
-	  int _Top2charge;
-	  int _Top2bntracks;
-	  float _Top2bmomentum;
-	  float _Top2btag;
-	  float _Top2mass;
-	  float _Top2momentum;
-	  float _Top2costheta;
-	  float _qCostheta[2];
-	  float _chiHad;
+	  TTree * _hGenTree;
+	  TTree * _hSumTree;
 
-	  float _MCTopmomentum;
-	  float _MCTopmass;
-	  float _MCTopcostheta;
-	  float _MCTopBarmomentum;
-	  float _MCTopBarmass;
-	  float _MCTopBarcostheta;
-	  float _qMCcostheta[2];
+	  float _totalEnergy;
+	  float _missedEnergy;
 
 	  int _nRun ;
-	  int _nEvt ;
+	  SummaryData _summary;
+	  StatsData _stats;
 	} ;
 		
 } /* TTbarAnalisys */
