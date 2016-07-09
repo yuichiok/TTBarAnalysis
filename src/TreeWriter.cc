@@ -14,6 +14,22 @@ namespace TTbarAnalysis
 		_hSumTree->Branch("nKaons", &data._nKaons, "nKaons/I");
 		_hSumTree->Branch("nChargedB", &data._nChargedB, "nChargedB/I");
 		_hSumTree->Branch("nAfterKinematicCuts", &data._nAfterKinematicCuts, "nAfterKinematicCuts/I");
+		_hSumTree->Branch("nAfterMassCuts", &data._nAfterMassCuts, "nAfterMassCuts/I");
+		
+	}
+	void TreeWriter::InitializeStatsBBBarTree(TTree * _hTree, StatsData & data)
+	{
+		_hTree->Branch("qMCcostheta", data._qMCcostheta, "qMCcostheta[2]/F");
+		_hTree->Branch("B1momentum", &data._B1momentum, "B1momentum/F");
+		_hTree->Branch("B2momentum", &data._B2momentum, "B2momentum/F");
+		_hTree->Branch("B1btag", &data._B1btag, "B1btag/F");
+		_hTree->Branch("B2btag", &data._B2btag, "B2btag/F");
+		_hTree->Branch("B1charge", &data._B1charge, "B1charge/I");
+		_hTree->Branch("B2charge", &data._B2charge, "B2charge/I");
+		_hTree->Branch("B1costheta", &data._B1costheta, "B1costheta/F");
+		_hTree->Branch("B2costheta", &data._B2costheta, "B2costheta/F");
+		_hTree->Branch("B1truthAngle", &data._B1truthAngle, "B1truthAngle/F");
+		_hTree->Branch("qCostheta", data._qCostheta, "qCostheta[2]/F");
 		
 	}
 	void TreeWriter::InitializeStatsTree(TTree * _hTree, StatsData & data)
@@ -29,6 +45,9 @@ namespace TTbarAnalysis
 		_hTree->Branch("MCTopBangle", &data._MCTopBangle, "MCTopBangle/F");
 		_hTree->Branch("MCTopcosWb", &data._MCTopcosWb, "MCTopcosWb/F");
 		_hTree->Branch("MCNeutrinoEnergy", &data._MCNeutrinoEnergy, "MCNeutrinoEnergy/F");
+		_hTree->Branch("MCLeptonPDG", &data._MCLeptonPDG, "MCLeptonPDG/I");
+		_hTree->Branch("MCLeptonMomentum", &data._MCLeptonMomentum, "MCLeptonMomentum/F");
+		_hTree->Branch("MCLeptonCostheta", &data._MCLeptonCostheta, "MCLeptonCostheta/F");
 		_hTree->Branch("MCBOscillation", &data._MCBOscillation, "MCBOscillation/I");
 		_hTree->Branch("MCBBarOscillation", &data._MCBBarOscillation, "MCBBarOscillation/I");
 		_hTree->Branch("qMCBcostheta", data._qMCBcostheta, "qMCBcostheta[2]/F");
@@ -41,6 +60,7 @@ namespace TTbarAnalysis
 		_hTree->Branch("W1momentum", &data._W1momentum, "W1momentum/F");
 		_hTree->Branch("W1costheta", &data._W1costheta, "W1costheta/F");
 		_hTree->Branch("W2momentum", &data._W2momentum, "W2momentum/F");
+		_hTree->Branch("W2costheta", &data._W2costheta, "W2costheta/F");
 		_hTree->Branch("Top1mass", &data._Top1mass, "Top1mass/F");
 		_hTree->Branch("Top1energy", &data._Top1energy, "Top1energy/F");
 		_hTree->Branch("Top1bcharge", &data._Top1bcharge, "Top1bcharge/I");
@@ -52,6 +72,11 @@ namespace TTbarAnalysis
 		_hTree->Branch("Top1bntracks", &data._Top1bntracks, "Top1bntracks/I");
 		_hTree->Branch("Top1bTVCM", &data._Top1bTVCM, "Top1bTVCM/I");
 		_hTree->Branch("Top1cosWb", &data._Top1cosWb, "Top1cosWb/F");
+		_hTree->Branch("Top1Vtx", &data._Top1Vtx, "Top1Vtx/I");
+		_hTree->Branch("Top1Kaon", &data._Top1Kaon, "Top1Kaon/I");
+		_hTree->Branch("Top1KaonNumber", &data._Top1KaonNumber, "Top1KaonNumber/I");
+		_hTree->Branch("Top1KaonCharges", data._Top1KaonCharges, "Top1KaonCharges[Top1KaonNumber]/I");
+		_hTree->Branch("Top1KaonMomentum", data._Top1KaonMomentum, "Top1KaonMomentum[Top1KaonNumber]/F");
 		_hTree->Branch("Top2bmomentum", &data._Top2bmomentum, "Top2bmomentum/F");
 		_hTree->Branch("Top2bdistance", &data._Top2bdistance, "Top2bdistance/F");
 		_hTree->Branch("Top2bcharge", &data._Top2bcharge, "Top2bcharge/I");
@@ -60,6 +85,11 @@ namespace TTbarAnalysis
 		_hTree->Branch("Top2bntracks", &data._Top2bntracks, "Top2bntracks/I");
 		_hTree->Branch("Top2leptonCharge", &data._Top2leptonCharge, "Top2leptonCharge/I");
 		_hTree->Branch("Top2leptonCorrect", &data._Top2leptonCorrect, "Top2leptonCorrect/I");
+		_hTree->Branch("Top2Vtx", &data._Top2Vtx, "Top2Vtx/I");
+		_hTree->Branch("Top2Kaon", &data._Top2Kaon, "Top2Kaon/I");
+		_hTree->Branch("Top2KaonNumber", &data._Top2KaonNumber, "Top2KaonNumber/I");
+		_hTree->Branch("Top2KaonCharges", data._Top2KaonCharges, "Top2KaonCharges[Top2KaonNumber]/I");
+		_hTree->Branch("Top2KaonMomentum", data._Top2KaonMomentum, "Top2KaonMomentum[Top2KaonNumber]/F");
 		_hTree->Branch("UsedBTVCM", &data._UsedBTVCM, "UsedBTVCM/I");
 		_hTree->Branch("methodUsed", &data._methodUsed, "methodUsed/I");
 		_hTree->Branch("methodCorrect", &data._methodCorrect, "methodCorrect/I");
@@ -70,6 +100,7 @@ namespace TTbarAnalysis
 		_hTree->Branch("chiPbstar", &data._chiPbstar, "chiPbstar/F");
 		_hTree->Branch("chiCosWb", &data._chiCosWb, "chiCosWb/F");
 		_hTree->Branch("chiGammaT", &data._chiGammaT, "chiGammaT/F");
+		_hTree->Branch("gammaT", &data._gammaT, "gammaT/F");
 		
 	}
 } /* TTBarAnalysis */

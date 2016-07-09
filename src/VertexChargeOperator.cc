@@ -3,6 +3,7 @@ using EVENT::ReconstructedParticle;
 using UTIL::LCRelationNavigator;
 using EVENT::MCParticle;
 using EVENT::Vertex;
+using EVENT::Track;
 using EVENT::LCObject;
 using std::vector;
 using EVENT::LCCollection;
@@ -10,10 +11,16 @@ namespace TTbarAnalysis
 {
 	const float VertexChargeOperator::BMASS = 5.279;
 	const float VertexChargeOperator::CTAU = 0.4554;
-	VertexChargeOperator:: VertexChargeOperator(LCCollection * rel)
+	VertexChargeOperator:: VertexChargeOperator(LCCollection * pfo, LCCollection * rel)
 	{
 		myResultingB = 0;
 		myRelCollection = rel;
+		myAlgorithmName = "HadronTagger";
+		if (pfo) 
+		{
+			myPFOCollection = pfo;
+			myPIDHandler = new PIDHandler(myPFOCollection);
+		}
 	}
 	int VertexChargeOperator::GetResultingB()
 	{
@@ -22,15 +29,16 @@ namespace TTbarAnalysis
 	float VertexChargeOperator::checkAsymmetry(TopQuark * top, Vertex * vertex1,ReconstructedParticle * kaon1, float & top1costheta)
 	{
 		float __mccharge = top->GetB()->__GetMCCharge();
-		float bmomentum = top->GetB()->GetHadronMomentum() * 2;
-		float gamma = std::sqrt(bmomentum + BMASS) / BMASS;
+		//float bmomentum = top->GetB()->GetHadronMomentum() * 2;
+		//float gamma = std::sqrt(bmomentum + BMASS) / BMASS;
 		float distance = MathOperator::getModule(vertex1->getPosition());
-		int ntracks = top->GetB()->GetNumberOfVertexParticles();
+		//int ntracks = top->GetB()->GetNumberOfVertexParticles();
 		float coefficient = distance / CTAU;
 		std::cout << "We have a kaon " << kaon1->getType() 
 			  << " with charge " << kaon1->getCharge() 
+			  << " momentum " << MathOperator::getModule(kaon1->getMomentum())
+			  << "  hits " << kaon1->getTracks()[0]->getSubdetectorHitNumbers()[6]
 			  << " from b with charge of " << __mccharge
-			  << " coefficient: " << coefficient
 			  << "\n";
 		float result = (kaon1->getCharge() < 0.0) ? top1costheta : -top1costheta;
 		if (__mccharge * kaon1->getCharge() < 0) 
@@ -49,6 +57,19 @@ namespace TTbarAnalysis
 		return result;
 	}
 
+	vector< ReconstructedParticle * > VertexChargeOperator::GetKaons(TopQuark * top)
+	{
+		vector< Vertex * > * vertices = top->GetRecoVertices();
+		vector< ReconstructedParticle * > secparticles;
+		vector< ReconstructedParticle * > kaons;
+		for (unsigned int i = 0; i < vertices->size(); i++) 
+		{
+			secparticles.reserve(secparticles.size() + vertices->at(i)->getAssociatedParticle()->getParticles().size());
+			secparticles.insert(secparticles.end(), vertices->at(i)->getAssociatedParticle()->getParticles().begin(), vertices->at(i)->getAssociatedParticle()->getParticles().end());
+		}
+		//return __filterOutCheat(getKaons(secparticles),2212); //__getKaonsCheat(secparticles);
+		return getKaons(secparticles); //__getKaonsCheat(secparticles);
+	}
 	int VertexChargeOperator::CountKaons(TopQuark * top1, TopQuark * top2)
 	{
 		Vertex * vertex1 =  getTernaryVertex(top1);
@@ -61,86 +82,71 @@ namespace TTbarAnalysis
 		}
 		return 0;
 	}
+	
+	float VertexChargeOperator::ComputeCharge(TopQuark * top)
+	{
+		float result = -2.;
+		Vertex * vertex =  getTernaryVertex(top);
+		//ReconstructedParticle * kaon = getKaon(vertex);
+		vector<float> direction = MathOperator::getDirection(top->getMomentum());
+		float top1costheta =  std::cos( MathOperator::getAngles(direction)[1] );
+		vector< ReconstructedParticle * > kaons = GetKaons(top);
+		/*if (kaon) 
+		{
+			kaons.push_back(kaon);
+		}*/
+		/*if (kaons.size() == 1) 
+		{
+			TopCharge & topCharge = top1->GetComputedCharge();
+			result = (kaons[0]->getCharge() < 0.0) ? top1costheta : -top1costheta;
+			topCharge.ByTVCM = new int(kaons->getCharge());
+		}*/
+		int sum = 0.0;
+		for (int i = 0; i < kaons.size(); i++) 
+		{
+			sum += kaons[i]->getCharge();
+			std::cout << "\tq: " <<  kaons[i]->getCharge() << " p: " << MathOperator::getModule(kaons[i]->getMomentum()) <<"\n";
+		}
+		if (kaons.size() > 0 && abs(sum) > 0.0) 
+		{
+			TopCharge & topCharge = top->GetComputedCharge();
+			result = (sum < 0.0) ? top1costheta : -top1costheta;
+			int sign = sum / abs(sum);
+			topCharge.ByTVCM = new int(sign);
+			
+		}
+		return sum;
+	}
 	float VertexChargeOperator::GetAsymmetryTVCM(TopQuark * top1, TopQuark * top2)
 	{
 		std::cout << "\n\n----TVCM method is called----\n";
 		Vertex * vertex1 =  getTernaryVertex(top1);
 		Vertex * vertex2 =  getTernaryVertex(top2);
-		ReconstructedParticle * kaon1 = __getKaonCheat(vertex1);
-		ReconstructedParticle * kaon2 = __getKaonCheat(vertex2);
-
-		if (!kaon1 && !kaon2) 
+		//ReconstructedParticle * kaon1 = __getKaonCheat(vertex1);
+		//ReconstructedParticle * kaon2 = __getKaonCheat(vertex2);
+		//ReconstructedParticle * kaon1 = getKaon(vertex1);
+		//ReconstructedParticle * kaon2 = getKaon(vertex2);
+		//vector< ReconstructedParticle * > kaons1 = GetKaons(top1);
+		//vector< ReconstructedParticle * > kaons2 = GetKaons(top2);
+		
+		/*if (kaon1) 
 		{
-			std::cout << "We have no kaons!\n";
-			return -2.0;
+			kaons1.push_back(kaon1);
 		}
+		if (kaon2) 
+		{
+			kaons2.push_back(kaon2);
+		}*/
+		ReconstructedParticle * winner1 = NULL;
+		ReconstructedParticle * winner2 = NULL;
 		vector<float> direction = MathOperator::getDirection(top1->getMomentum());
 		float top1costheta =  std::cos( MathOperator::getAngles(direction)[1] );
 		float result = -2.0;
-		if (kaon1 && !kaon2) 
-		{
-			checkAsymmetry(top1, vertex1, kaon1, top1costheta);
-			result = (kaon1->getCharge() < 0.0) ? top1costheta : -top1costheta;
-			myResultingB = kaon1->getCharge();
-			TopCharge & topCharge = top1->GetComputedCharge();
-			topCharge.ByTVCM = new int(kaon1->getCharge());
-		}
-		if (kaon2 && !kaon1) 
-		{
-			checkAsymmetry(top2, vertex2, kaon2, top1costheta);
-			result = (kaon2->getCharge() < 0.0) ? -top1costheta : top1costheta;
-			myResultingB = -kaon2->getCharge();
-			TopCharge & topCharge = top2->GetComputedCharge();
-			topCharge.ByTVCM = new int(kaon2->getCharge());
-		}
-		if (kaon2 && kaon1) 
-		{
-			std::cout << "We have twwo kaons!\n";
-			if (kaon1->getCharge() * kaon2->getCharge() < 0) 
-			{
-				result = (kaon1->getCharge() < 0.0) ? top1costheta : -top1costheta;
-			}
-			TopCharge & topCharge1 = top1->GetComputedCharge();
-			topCharge1.ByTVCM = new int(kaon1->getCharge());
-			TopCharge & topCharge2 = top2->GetComputedCharge();
-			topCharge2.ByTVCM = new int(kaon2->getCharge());
-			/*if ( MathOperator::getModule(vertex1->getPosition()) < MathOperator::getModule(vertex2->getPosition())) 
-			{
-				result = (kaon1->getCharge() < 0.0) ? top1costheta : -top1costheta;
-				float __mccharge = top->GetB()->__GetMCCharge();
-				if (__mccharge * kaon1->getCharge() < 0.0) 
-				{
-					top->SetResultTVCM(-1);
-				}
-				else 
-				{
-					top->SetResultTVCM(1);
-				}
-			}
-			else 
-			{
-				result = (kaon2->getCharge() < 0.0) ? -top1costheta : top1costheta;
-				float __mccharge = top2->GetB()->__GetMCCharge();
-				if (__mccharge * kaon2->getCharge() < 0.0) 
-				{
-					top2->SetResultTVCM(-1);
-				}
-				else 
-				{
-					top2->SetResultTVCM(1);
-				}
-			}*/
-		}
-		/*if (leptonkaon1) 
-		{
-			std::cout << "We have a lepton " << leptonkaon1->getType() << " with charge " << leptonkaon1->getCharge() << "\n";
-			result = (leptonkaon1->getCharge() < 0.0) ? -top1costheta : top1costheta;  
-		}
-		if (leptonkaon2) 
-		{
-			std::cout << "We have a lepton " << leptonkaon2->getType() << " with charge " << leptonkaon2->getCharge() << "\n";
-			result = (leptonkaon2->getCharge() < 0.0) ? top1costheta : -top1costheta;  
-		}*/
+		float maxp = 0;
+		std::cout << "Kaons 1 :\n";
+		result = ComputeCharge(top1);
+		std::cout << "Kaons 2 :\n";
+		result = ComputeCharge(top2);
 		
 		return result;
 	}
@@ -200,6 +206,28 @@ namespace TTbarAnalysis
 		}
 		return result;
 	}
+	ReconstructedParticle * VertexChargeOperator::getKaon(Vertex * ternary)
+	{
+		if (!ternary) 
+		{
+			return NULL;
+		}
+		const vector<ReconstructedParticle *> particles = ternary->getAssociatedParticle()->getParticles();
+		ReconstructedParticle * result = NULL;
+		int count = 0;
+		vector< ReconstructedParticle * > kaons = getKaons(particles);
+		if (kaons.size() > 1) 
+		{
+			std::cout << "ERROR: Multiple kaons found!\n";
+			return NULL;
+		}
+		if (kaons.size() == 0) 
+		{
+			std::cout << "ERROR: No kaons found!\n";
+			return NULL;
+		}
+		return kaons[0];
+	}
 	ReconstructedParticle * VertexChargeOperator::__getKaonCheat(Vertex * ternary)
 	{
 		if (!ternary) 
@@ -208,14 +236,50 @@ namespace TTbarAnalysis
 		}
 		LCRelationNavigator navigator(myRelCollection);
 		const vector<ReconstructedParticle *> particles = ternary->getAssociatedParticle()->getParticles();
-		ReconstructedParticle * result = NULL;
-		int count = 0;
-		for (int i = 0; i < particles.size(); i++) 
+		vector< ReconstructedParticle * > kaons = __getKaonsCheat(particles);
+		if (kaons.size() > 1) 
+		{
+			std::cout << "ERROR: Multiple kaons found!\n";
+			return NULL;
+		}
+		if (kaons.size() == 0) 
+		{
+			std::cout << "ERROR: No kaons found!\n";
+			return NULL;
+		}
+		return kaons[0];
+	}
+	vector< ReconstructedParticle * > VertexChargeOperator::getKaons(const vector< ReconstructedParticle * > & particles)
+	{
+		vector< ReconstructedParticle * > result;
+		if (!myPIDHandler) 
+		{
+			return result;
+		}
+		for (unsigned int i = 0; i < particles.size(); i++) 
 		{
 			ReconstructedParticle * particle = particles[i];
-			std::cout << "Charge: " << particle->getCharge() << "\n";
+			int pid = myPIDHandler->getAlgorithmID(myAlgorithmName);
+			int pdg = myPIDHandler->getParticleID(particle, pid).getPDG();
+			if (abs(pdg) == 321 && abs(particle->getType()) != 11 && abs(particle->getType()) != 13) 
+			{
+				//std::cout << "\tK p: " << MathOperator::getModule(particle->getMomentum()) << " q: " << particle->getCharge() << "\n";
+				result.push_back(particle);
+			}		
+		}
+		return result;
+	}
+	vector< ReconstructedParticle * > VertexChargeOperator::__getKaonsCheat(const vector< ReconstructedParticle * > & particles)
+	{
+		LCRelationNavigator navigator(myRelCollection);
+		vector< ReconstructedParticle * > result;
+		for (unsigned int i = 0; i < particles.size(); i++) 
+		{
+			ReconstructedParticle * particle = particles[i];
+			//std::cout << "Charge: " << particle->getCharge() << "\n";
 			vector<float> direction = MathOperator::getDirection(particle->getMomentum());
 			int tpchits = particle->getTracks()[0]->getSubdetectorHitNumbers()[6];
+			float p = MathOperator::getModule(particle->getMomentum());
 			float costheta =  std::abs(std::cos( MathOperator::getAngles(direction)[1] ));
 			if (costheta > 0.95 || tpchits < 60) 
 			{
@@ -239,14 +303,38 @@ namespace TTbarAnalysis
 			}
 			if (winner && abs(winner->getPDG()) == 321) 
 			{
-				result = particle;
-				count++;
+				result.push_back(particle);
 			}
 		}
-		if (count > 1) 
+		return result;
+	}
+	vector< ReconstructedParticle * > VertexChargeOperator::__filterOutCheat(vector< ReconstructedParticle * > particles, int type)
+	{
+		LCRelationNavigator navigator(myRelCollection);
+		vector< ReconstructedParticle * > result;
+		for (unsigned int i = 0; i < particles.size(); i++) 
 		{
-			std::cout << "ERROR: Multiple kaons found!\n";
-			return NULL;
+			ReconstructedParticle * particle = particles[i];
+			vector< LCObject * > obj = navigator.getRelatedToObjects(particle);
+			vector< float > weights = navigator.getRelatedToWeights(particle);
+			MCParticle * winner = NULL;
+			float maxweight = 0.50;
+			for (unsigned int i = 0; i < obj.size(); i++) 
+			{
+				if (weights[i] > maxweight) 
+				{
+					winner = dynamic_cast< MCParticle * >(obj[i]);
+					maxweight = weights[i];
+				}
+			}
+			if (!winner) 
+			{
+				std::cout << "ERROR: no genparticle!\n";
+			}
+			if (winner && abs(winner->getPDG()) != type) 
+			{
+				result.push_back(particle);
+			}
 		}
 		return result;
 	}

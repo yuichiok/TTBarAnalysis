@@ -26,7 +26,7 @@ namespace TTbarAnalysis
 		//
 		//	Methods
 		//
-			float GetBTag();
+			const float GetBTag() const;
 			float GetCTag();
 			void SetBTag(float value);
 			void SetCTag(float value);
@@ -34,9 +34,10 @@ namespace TTbarAnalysis
 			std::vector<  EVENT::Vertex * > * GetRecoVertices();
 			int GetNumberOfVertices();
 			int GetNumberOfVertexParticles();
-			float GetHadronCharge();
+			float GetHadronCharge(bool weight = false);
 			float GetHadronMomentum();
 			float GetHadronMass();
+			float GetCostheta();
 			float GetMinHadronDistance();
 			float GetMaxHadronDistance();
 			const double * GetMomentum();

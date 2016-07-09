@@ -44,7 +44,7 @@ namespace TTbarAnalysis
 	{
 		myCTag = value;
 	}
-	float RecoJet::GetBTag()
+	const float RecoJet::GetBTag() const
 	{
 		return myBTag;
 	}
@@ -73,7 +73,13 @@ namespace TTbarAnalysis
 		}
 		return sum;
 	}
-	float RecoJet::GetHadronCharge()
+	float RecoJet::GetCostheta()
+	{
+		vector<float> d1 = MathOperator::getDirection(getMomentum());
+		float costheta1 =  std::abs(std::cos( MathOperator::getAngles(d1)[1] ));
+		return costheta1;
+	}
+	float RecoJet::GetHadronCharge(bool weight)
 	{
 		float charge = -5.0;
 		if (myRecoVertices && myRecoVertices->size() > 0) 
@@ -82,6 +88,19 @@ namespace TTbarAnalysis
 			for (unsigned int i = 0; i < myRecoVertices->size(); i++) 
 			{
 				charge += myRecoVertices->at(i)->getAssociatedParticle()->getCharge();
+			}
+			if (weight) 
+			{
+				charge = 0.0;
+				for (unsigned int i = 0; i < myRecoVertices->size(); i++) 
+				{
+					ReconstructedParticle * vtx = myRecoVertices->at(i)->getAssociatedParticle();
+					for (unsigned int j = 0; j < vtx->getParticles().size(); j++) 
+					{
+						float p = MathOperator::getModule(vtx->getParticles()[j]->getMomentum());
+						charge += vtx->getParticles()[j]->getCharge() * p;
+					}
+				}
 			}
 		}
 		return charge;

@@ -29,7 +29,6 @@ namespace TTbarAnalysis
 				      "Helicity of e- beam",
 				      _ePolarization,
 				      0 );
-
 		registerInputCollection( LCIO::RECONSTRUCTEDPARTICLE , 
 				   "PFOCollection",
 				   "Name of the Calorimeter hit collection"  ,
@@ -72,6 +71,16 @@ namespace TTbarAnalysis
 		    _colRelName ,
 		    std::string("RecoMCTruthLink")
 		);
+		_type = 2;
+		registerProcessorParameter( "AnalysisType",
+				      "Analysis Type",
+				      _type,
+				      _type);
+		
+		std::cout << "Type: " <<  _type << "\n";
+		_analysisType = static_cast<ANALYSIS_TYPE>(_type);
+		std::cout << "Type: " <<  _analysisType << "\n";
+
 		_lowBTagCutparameter = 0.3;
 		_highBTagCutparameter = 0.8;
 		_WMassparameter = 80.3;
@@ -91,7 +100,7 @@ namespace TTbarAnalysis
 	{ 
 		// usually a good idea to
 		printParameters() ;
-
+		std::cout << "_analysisType: " << _analysisType << "\n";
 		_nRun = 0 ;
 		TreeWriter writer;
 		_hfile = new TFile( _hfilename.c_str(), "RECREATE", _hfilename.c_str() ) ;
@@ -99,9 +108,22 @@ namespace TTbarAnalysis
 		writer.InitializeSummaryTree(_hSumTree, _summary);
 		_hGenTree = new TTree( "GenTree", "tree" );
 		_hGenTree->Branch("qMCcostheta", _stats._qMCcostheta, "qMCcostheta[2]/F");
+		_hGenTree->Branch("MCMass", &_stats._MCMass, "MCMass/F");
 		_hGenTree->Branch("MCBcostheta", _stats._qMCBcostheta, "MCBcostheta[2]/F");
+		_hGenTree->Branch("MCLeptonPDG", &_stats._MCLeptonPDG, "MCLeptonPDG/I");
 		_hTree = new TTree( "Stats", "tree" );
-		writer.InitializeStatsTree(_hTree, _stats);
+		switch(_analysisType)
+		{
+			case TTBarSemileptonic:
+				writer.InitializeStatsTree(_hTree, _stats);
+				break;
+			case BBbar:
+				writer.InitializeStatsBBBarTree(_hTree, _stats);
+				break;
+			case TTBarHadronic:
+				break;
+		}
+		//AnalyseTTBarSemiLeptonic(evt);
 
 		
 		//_hTree->Branch("detectedTotal", &_stats._detectedTotal, "detectedTotal/I");
@@ -110,6 +132,29 @@ namespace TTbarAnalysis
 	{ 
 		_nRun++ ;
 	} 
+	vector< MCParticle * > TTBarProcessor::AnalyseGeneratorBBBar(MCOperator & opera)
+	{
+		vector <MCParticle *> genfinalstate = opera.GetPairParticles(5);
+		for (unsigned int i = 0; i < genfinalstate.size(); i++) 
+		{
+			PrintParticle(genfinalstate[i]);
+			vector<float> direction = MathOperator::getDirection(genfinalstate[i]->getMomentum());
+			int charge = genfinalstate[i]->getCharge() / std::abs(genfinalstate[i]->getCharge());
+			_stats._qMCcostheta[i] = - std::cos( MathOperator::getAngles(direction)[1]) * charge;
+			if (_stats._qMCcostheta[i] < -0.6 && _stats._qMCcostheta[i] > -2) 
+			{
+				std::cout << "Bkg process: " << _stats._qMCcostheta[i] << "\n";
+			}
+		}
+		if (genfinalstate.size() == 2) 
+		{
+			MCParticle * Z = opera.CombineParticles(genfinalstate[0],genfinalstate[1]);
+			_stats._MCMass = Z->getMass();
+		}
+		_hGenTree->Fill();
+		return genfinalstate;
+		
+	}
 	vector< MCParticle * > TTBarProcessor::AnalyseGenerator(MCOperator & opera)
 	{
 		std::vector< EVENT::MCParticle * > mctops = opera.GetTopPairParticles(_stats._MCTopBangle, _stats._MCTopcosWb);
@@ -148,17 +193,38 @@ namespace TTbarAnalysis
 		_stats._qMCcostheta[0] = _stats._MCTopcostheta;//(std::abs(_stats._qMCBcostheta[0]) < 0.9 )? _stats._MCTopcostheta: -2;
 		_stats._qMCcostheta[1] = -_stats._MCTopBarcostheta;//(std::abs(_stats._qMCBcostheta[1]) < 0.9 )? -_stats._MCTopBarcostheta : -2;
 		_hGenTree->Fill();
-		/*opera.GetFinalState();
+		vector <MCParticle *> final = opera.GetFinalState();
+		for (unsigned int i = 0; i < final.size(); i++) 
+		{
+			if (abs(final[i]->getPDG()) == 11 || abs(final[i]->getPDG()) == 13 || abs(final[i]->getPDG()) == 15) 
+			{
+				_stats._MCLeptonMomentum = MathOperator::getModule(final[i]->getMomentum());
+				vector<float> ldirection = MathOperator::getDirection(final[i]->getMomentum());
+				_stats._MCLeptonCostheta = std::cos(MathOperator::getAngles(ldirection)[1]);
+				_stats._MCLeptonPDG = final[i]->getPDG();
+			}
+		}
 		MCParticle * neutrino = opera.GetNeutrino();
 		if (neutrino) 
 		{
 			_stats._MCNeutrinoEnergy = neutrino->getEnergy();
-		}*/
+		}
 		return mctops;
 	}
 	void TTBarProcessor::processEvent( LCEvent * evt )
 	{
-		AnalyseTTBarSemiLeptonic(evt);
+		switch(_analysisType)
+		{
+			case TTBarSemileptonic:
+				AnalyseTTBarSemiLeptonic(evt);
+				break;
+			case BBbar:
+				AnalyseBBBar(evt);
+				break;
+			case TTBarHadronic:
+				break;
+		}
+		//AnalyseTTBarSemiLeptonic(evt);
 	}
 
 	void TTBarProcessor::AnalyseTTBarSemiLeptonic( LCEvent * evt )
@@ -173,7 +239,7 @@ namespace TTbarAnalysis
 			LCCollection * mccol = evt->getCollection(_MCColName);
 			LCCollection * mcvtxcol = evt->getCollection(_MCVtxColName);
 			MCOperator opera(mccol);
-			VertexChargeOperator vtxOperator(evt->getCollection(_colRelName));
+			VertexChargeOperator vtxOperator(evt->getCollection(_colName),evt->getCollection(_colRelName));
 			vector < MCParticle * > mctops = AnalyseGenerator(opera);
 			vector< RecoJet * > * jets = getJets(jetcol, jetrelcol);
 			vector< RecoJet * > * wjets = new vector< RecoJet * >();
@@ -184,14 +250,18 @@ namespace TTbarAnalysis
 			PrintJets(wjets);
 			if (!isoleptoncol || isoleptoncol->getNumberOfElements() == 0) 
 			{
-				std::cout << "No IsoLepton!!! \n";
+				std::cout << "No IsoLepton!\n";
 				if (isoleptoncol) 
 				{
 					int IsTau = isoleptoncol->parameters().getIntVal("isLeptonFromTau");
 					if (IsTau) 
 					{
-						std::cout << "IsoLepton is tau! \n";
+						std::cout << " IsoLepton is tau! \n";
 					}
+				}
+				else 
+				{
+					std::cout << " No IsoLepton collection!!! \n";
 				}
 				return;
 			}
@@ -212,12 +282,12 @@ namespace TTbarAnalysis
 				return;
 			}
 			_summary._nAfterLeptonCuts++;
-			if (bjets->size() != 2 ) 
+			if (!bjets || bjets->size() != 2 ) 
 			{
 				std::cout << "No B jets!!! \n";
 				return;
 			}
-			if (bjets->at(0)->GetBTag() < _highBTagCutparameter && bjets->at(1)->GetBTag() < _highBTagCutparameter) 
+			if ((bjets->at(0)->GetBTag() <  _lowBTagCutparameter && bjets->at(1)->GetBTag() <  _lowBTagCutparameter ) ||bjets->at(0)->GetBTag() < _highBTagCutparameter ) 
 			{
 				std::cout << "No high B jets!!! \n";
 				return;
@@ -229,7 +299,8 @@ namespace TTbarAnalysis
 			_stats._W1costheta = std::cos (MathOperator::getAngles(direction)[1]);
 			//if (isoleptoncol->getNumberOfElements() > 1) 
 			std::cout << '\n';
-			//ReconstructedParticle * wLeptonic = (isoleptoncol->getNumberOfElements() >0) ? dynamic_cast< ReconstructedParticle * >(isoleptoncol->getElementAt(0)):NULL;
+			vector<float> directionL = MathOperator::getDirection(wLeptonic->getMomentum());
+			_stats._W2costheta = std::cos (MathOperator::getAngles(directionL)[1]);
 			TopQuark * topHadronic = NULL;
 			TopQuark * topLeptonic = NULL;
 			int chosen = -1;
@@ -253,7 +324,6 @@ namespace TTbarAnalysis
 			{
 				topLeptonic = new TopQuark(bjets->at(1), wLeptonic);
 			}
-			_summary._nKaons += vtxOperator.CountKaons(topHadronic, topLeptonic);
 			/*if (chosen) 
 			{
 				topLeptonic = new TopQuark(bjets->at(0));
@@ -273,7 +343,12 @@ namespace TTbarAnalysis
 			MatchB(mcbquarks, topHadronic, topLeptonic, mcvtxcol);
 			ComputeCharge(topHadronic, topLeptonic);
 			ComputeChargeTVCM(topHadronic, topLeptonic, vtxOperator);
+
 			DecideOnAsymmetry(topHadronic, topLeptonic);
+			if (_stats._methodUsed && wHadronic->getMass() < 110 && topHadronic->getMass() < 200) 
+			{
+				_summary._nAfterMassCuts++;
+			}
 			//test(topHadronic, topLeptonic);
 			//__ComputeChargeCheat(topHadronic, topLeptonic);
 			_hTree->Fill();
@@ -286,22 +361,36 @@ namespace TTbarAnalysis
 	}
 	void TTBarProcessor::ComputeChargeTVCM(TopQuark * top, TopQuark * top2, VertexChargeOperator & vtxOperator)
 	{
-		float costheta = vtxOperator.GetAsymmetryTVCM(top, top2);
-		if (costheta > -2. && _stats._qCostheta[0] > -2. ) 
-		{
-			if (costheta * _stats._qCostheta[0] > 0) 
-			{
-			//	_stats._qCostheta[0] =  costheta;
-			}
-			else 
-			{
-				_stats._qCostheta[0] = -2;
-			}
-		}
+		vtxOperator.GetAsymmetryTVCM(top, top2);
+		_stats._Top1Kaon = (top->GetComputedCharge().ByTVCM )? 1:0;
+		_stats._Top2Kaon = (top2->GetComputedCharge().ByTVCM )? 1:0;
 		//_stats._qCostheta[0] =  costheta;
-		_stats._Top1bTVCM = top->GetResultTVCM();
-		_stats._Top2bTVCM = top2->GetResultTVCM();
+		//_stats._Top1bTVCM = top->GetResultTVCM();
+		//_stats._Top2bTVCM = top2->GetResultTVCM();
 		_stats._UsedBTVCM = vtxOperator.GetResultingB();
+		vector< ReconstructedParticle * > kaons1 = vtxOperator.GetKaons(top);
+		vector< ReconstructedParticle * > kaons2 = vtxOperator.GetKaons(top2);
+		_stats._Top1KaonNumber = kaons1.size();
+		_stats._Top2KaonNumber = kaons2.size();
+		if (top->GetComputedCharge().ByTVCM || top2->GetComputedCharge().ByTVCM) 
+		{
+			_summary._nKaons++;
+		}
+		//_summary._nKaons += vtxOperator.CountKaons(topHadronic, topLeptonic);
+		//std::cout << "Kaons 1 :\n";
+		for (unsigned int i = 0; i < kaons1.size(); i++) 
+		{
+			_stats._Top1KaonCharges[i] = kaons1[i]->getCharge();
+			_stats._Top1KaonMomentum[i] = MathOperator::getModule(kaons1[i]->getMomentum());
+			//std::cout << "\tq: " <<  kaons1[i]->getCharge() << " p: " << MathOperator::getModule(kaons1[i]->getMomentum()) <<"\n";
+		}
+		//std::cout << "Kaons 2 :\n";
+		for (unsigned int i = 0; i < kaons2.size(); i++) 
+		{
+			_stats._Top2KaonCharges[i] = kaons2[i]->getCharge();
+			_stats._Top2KaonMomentum[i] = MathOperator::getModule(kaons2[i]->getMomentum());
+			//std::cout << "\tq: " <<  kaons2[i]->getCharge() << " p: " << MathOperator::getModule(kaons2[i]->getMomentum()) <<"\n";
+		}
 		/*vector<float> directionTop = MathOperator::getDirection(top->getMomentum());
 		_stats._Top1costheta =  std::cos( MathOperator::getAngles(directionTop)[1] );
 		_stats._Top1bdistance = top->GetMaxHadronDistance();
@@ -309,6 +398,37 @@ namespace TTbarAnalysis
 		_stats._Top1bntracks = top->GetNumberOfVertexParticles();
 		_stats._Top2bntracks = top2->GetNumberOfVertexParticles();
 		*/
+		_stats._qCostheta[0] = -2;
+		std::cout << "\t Costheta: " << _stats._Top1costheta << "\n";
+		if (top->GetComputedCharge().ByTVCM) 
+		{
+			int top1charge = *(top->GetComputedCharge().ByTVCM );
+			 _stats._qCostheta[0] = (top1charge < 0)? _stats._Top1costheta : -_stats._Top1costheta;
+			_stats._methodUsed = 1;
+			_stats._methodCorrect = top->__GetMCCharge() * top1charge < 0;
+			_summary._nAfterKinematicCuts++;
+		}
+		if (top2->GetComputedCharge().ByTVCM) 
+		{
+			int top2charge = *(top2->GetComputedCharge().ByTVCM );
+			 _stats._qCostheta[0] = (top2charge < 0)? -_stats._Top1costheta : _stats._Top1costheta;
+			_stats._methodUsed = 2;
+			_stats._methodCorrect = top2->__GetMCCharge() * top2charge < 0;
+			_summary._nAfterKinematicCuts++;
+		}
+		if (top2->GetComputedCharge().ByTVCM && top->GetComputedCharge().ByTVCM) 
+		{
+			int top1charge = *(top->GetComputedCharge().ByTVCM );
+			int top2charge = *(top2->GetComputedCharge().ByTVCM );
+			if (top1charge * top2charge < 0) 
+			{
+				_stats._qCostheta[0] = (top1charge < 0)? _stats._Top1costheta : -_stats._Top1costheta;
+			}
+			_stats._methodUsed = 3;
+			_stats._methodCorrect = top->__GetMCCharge() * top1charge < 0;
+			_summary._nAfterKinematicCuts++;
+		}
+		std::cout << "\t Costheta final: " << _stats._qCostheta[0]  << "\n";
 	}
 	void TTBarProcessor:: check( LCEvent * evt ) 
 	{
@@ -334,7 +454,7 @@ namespace TTbarAnalysis
 		_stats._Top1bcostheta =std::abs( std::cos( MathOperator::getAngles(bdirection)[1] ));
 		std::cout << "Top charge: " << _stats._Top1bcharge
 			  << " top pB: " << _stats._Top1bmomentum
-			  << " top W: " << _stats._Top1bmomentum
+			  << " top W: " <<  MathOperator::getModule(top1->GetW()->getMomentum())//_stats._Top1bmomentum
 			  << " top bntracks: " << _stats._Top1bntracks
 			  << " top btag: " << _stats._Top1btag
 			  << " top bcostheta: " << _stats._Top1bcostheta
@@ -361,10 +481,10 @@ namespace TTbarAnalysis
 		
 		bool trustTop1 = false;
 		bool trustTop2 = false;
-		float pcut = 15.0;
-		float pcut2 = 15.0;
-		float btagcut = 0.8;
-		float btagcut2 = 0.8;
+		//float pcut = 15.0;
+		//float pcut2 = 15.0;
+		//float btagcut = 0.8;
+		//float btagcut2 = 0.8;
 		int nvtxcut = 0;
 		int nvtxcut2 = 0;
 		if (_stats._Top1bntracks %2 == 1 && _stats._Top1bntracks != 3) 
@@ -379,37 +499,48 @@ namespace TTbarAnalysis
 			//pcut2 = 20.;
 			//btagcut2 = 0.99;
 		}
-		if (_stats._Top1bmomentum > pcut && 
+		if (//_stats._Top1bmomentum > pcut && 
 		    abs( _stats._Top1bcharge) > 0 && 
-		    _stats._Top1bntracks > 2 && 
+		    _stats._Top1bntracks > 2 //&& 
+
+		    //top1->GetB()->__GetMCNtracks() > 0 &&
 		    //Top1nvtx > nvtxcut &&
 		    //_stats._Top1bntracks < 9 &&
-		    //_stats._Top1bcostheta < 0.9 &&
+		    //_stats._Top1bntracks != 7 &&
+		    ///_stats._Top1bcostheta < 0.9 &&
 		    //_stats._Top1bdistance > 0.5 &&
 		    //(_stats._Top1bntracks %2 == 0 || _stats._Top1bntracks == 3) && 
-		    _stats._Top1btag > btagcut )  //  _stats._Top1bntracks < 7 
+		    //_stats._Top1btag > btagcut 
+		    )  //  _stats._Top1bntracks < 7 
 		{
 			std::cout << "Use top 1!\n";
 			trustTop1 = true;
+			_stats._Top1Vtx = 1;
 			TopCharge & topCharge = top1->GetComputedCharge();
 			topCharge.ByTrackCount = new int(top1->GetHadronCharge());
 			
 		}
-		if (_stats._Top2bmomentum > pcut2 && 
+		if (//_stats._Top2bmomentum > pcut2 && 
 		    abs( _stats._Top2bcharge) > 0 && 
-		    _stats._Top2bntracks > 2 && 
+		    _stats._Top2bntracks > 2 //&& 
+		    //top2->GetB()->__GetMCNtracks() > 0 &&
 		    //Top2nvtx > nvtxcut2 &&
 		    //_stats._Top2bntracks < 9 &&
+		    //_stats._Top2bntracks != 7 &&
 		    //_stats._Top2bcostheta < 0.9 &&
 		    //_stats._Top2bdistance > 0.5 &&
 		    //(_stats._Top2bntracks %2 == 0 || _stats._Top2bntracks == 3) && 
-		    _stats._Top2btag > btagcut2 ) 
+		    //_stats._Top2btag > btagcut2 
+		    ) 
 		{
 			std::cout << "Use top 2!\n";
 			trustTop2 = true;
+			_stats._Top2Vtx = 1;
 			TopCharge & topCharge = top2->GetComputedCharge();
 			topCharge.ByTrackCount = new int(top2->GetHadronCharge());
 		}
+		std::cout << "\tTop1 weighted charge: " << top1->GetHadronCharge(true) << "\n";
+		std::cout << "\tTop2 weighted charge: " << top2->GetHadronCharge(true) << "\n";
 		if ( _stats._Top2bcharge != 0 ||  _stats._Top1bcharge != 0) 
 		{
 			_summary._nChargedB++;
@@ -506,22 +637,31 @@ namespace TTbarAnalysis
 
 		vector<float> direction = MathOperator::getDirection(top1->getMomentum());
 		float costheta =  std::cos( MathOperator::getAngles(direction)[1] );
+		float m = top1->getMass();
+		float e = top1->getEnergy();
+		float btagcut = 0.8;
+		float pcut = 20.;
+		//if (e/m > _GammaTparameter -0.1 && top2->GetComputedCharge().ByLepton) 
 		//Track charge * Track charge
-
 		if (top2->GetComputedCharge().ByTrackCount && top1->GetComputedCharge().ByTrackCount) 
 		{
 			int top1charge = *(top1->GetComputedCharge().ByTrackCount );
 			int top2charge = *(top2->GetComputedCharge().ByTrackCount );
-			if (top1charge * top2charge < 0) 
+			if (top1charge * top2charge < 0 && _stats._Top1btag > btagcut && _stats._Top1bmomentum > pcut) 
 			{
 				_stats._qCostheta[0] = (top1charge < 0)? costheta: - costheta;
 				std::cout << "Two vertices are used!\n";
 				_stats._methodUsed = 1;
 				_stats._methodCorrect = top1->__GetMCCharge() * top1charge < 0;
+				if (!_stats._methodCorrect) 
+				{
+					 std::cout << "Not Correct!\n";
+				}
 				_summary._nAfterKinematicCuts++;
 				return;
 			}
 		}
+		
 		//Kaon * Kaon
 		if (top2->GetComputedCharge().ByTVCM && top1->GetComputedCharge().ByTVCM) 
 		{
@@ -533,22 +673,29 @@ namespace TTbarAnalysis
 				std::cout << "Two kaons are used!\n";
 				_stats._methodUsed = 2;
 				_stats._methodCorrect = top1->__GetMCCharge() * top1charge < 0;
+				if (!_stats._methodCorrect) 
+				{
+					 std::cout << "Not Correct!\n";
+				}
 				_summary._nAfterKinematicCuts++;
 				return;
 			}
 		}//*/
-		
 		//Track charge + Kaon
 		if (top1->GetComputedCharge().ByTrackCount && top1->GetComputedCharge().ByTVCM) 
 		{
 			int top1charge = *(top1->GetComputedCharge().ByTrackCount );
 			int top1kaon = *(top1->GetComputedCharge().ByTVCM );
-			if (top1charge * top1kaon > 0) 
+			if (top1charge * top1kaon > 0 && _stats._Top1btag > btagcut && _stats._Top1bmomentum > pcut) 
 			{
 				_stats._qCostheta[0] = (top1charge < 0)? costheta: -costheta; 
 				std::cout << "Vertex + kaon for top1 is used!\n";
 				_stats._methodUsed = 3;
 				_stats._methodCorrect = top1->__GetMCCharge() * top1charge < 0;
+				if (!_stats._methodCorrect) 
+				{
+					 std::cout << "Not Correct!\n";
+				}
 				_summary._nAfterKinematicCuts++;
 				return;
 			}
@@ -557,12 +704,16 @@ namespace TTbarAnalysis
 		{
 			int top2charge = *(top2->GetComputedCharge().ByTrackCount );
 			int top2kaon = *(top2->GetComputedCharge().ByTVCM );
-			if (top2charge * top2kaon > 0) 
+			if (top2charge * top2kaon > 0 && _stats._Top2btag > btagcut && _stats._Top2bmomentum > pcut) 
 			{
 				_stats._qCostheta[0] = (top2charge > 0)? costheta: - costheta; 
 				std::cout << "Vertex + kaon for top2 is used!\n";
 				_stats._methodUsed = 4;
 				_stats._methodCorrect = top1->__GetMCCharge() * top2charge > 0;
+				if (!_stats._methodCorrect) 
+				{
+					 std::cout << "Not Correct!\n";
+				}
 				_summary._nAfterKinematicCuts++;
 				return;
 			}
@@ -571,12 +722,16 @@ namespace TTbarAnalysis
 		{
 			int top1charge = *(top1->GetComputedCharge().ByTrackCount );
 			int top2kaon = *(top2->GetComputedCharge().ByTVCM );
-			if (top1charge * top2kaon < 0) 
+			if (top1charge * top2kaon < 0 &&  _stats._Top1btag > btagcut && _stats._Top1bmomentum > pcut) 
 			{
 				_stats._qCostheta[0] = (top1charge < 0)? costheta: - costheta; 
-				std::cout << "Vertex + kaon for top2 is used!\n";
+				std::cout << "Vertex1 + kaon2 is used!\n";
 				_stats._methodUsed = 5;
 				_stats._methodCorrect = top1->__GetMCCharge() *  top1charge < 0;
+				if (!_stats._methodCorrect) 
+				{
+					 std::cout << "Not Correct!\n";
+				}
 				_summary._nAfterKinematicCuts++;
 				return;
 			}
@@ -585,15 +740,130 @@ namespace TTbarAnalysis
 		{
 			int top2charge = *(top2->GetComputedCharge().ByTrackCount );
 			int top1kaon = *(top1->GetComputedCharge().ByTVCM );
-			if (top2charge * top1kaon < 0) 
+			if (top2charge * top1kaon < 0 &&  _stats._Top2btag > btagcut && _stats._Top2bmomentum > pcut) 
 			{
 				_stats._qCostheta[0] = (top2charge > 0)? costheta: - costheta; 
-				std::cout << "Vertex + kaon for top2 is used!\n";
+				std::cout << "Vertex2 + kaon1 is used!\n";
 				_stats._methodUsed = 6;
+				if (!_stats._methodCorrect) 
+				{
+					 std::cout << "Not Correct!\n";
+				}
 				_stats._methodCorrect = top1->__GetMCCharge() * top1kaon< 0;
 				_summary._nAfterKinematicCuts++;
 				return;
 			}
+		}//*/
+		//LEPTON
+		/*if (top2->GetComputedCharge().ByLepton && top2->GetComputedCharge().ByTrackCount)
+		{
+			int top2lepton = *(top2->GetComputedCharge().ByLepton );
+			int top2charge = *(top2->GetComputedCharge().ByTrackCount );
+			if (top2charge * top2lepton < 0)
+			{
+				_stats._qCostheta[0] = (top2charge > 0)? costheta: - costheta; 
+				std::cout << "Vertex + kaon for top2 is used!\n";
+				_stats._methodUsed = 7;
+				_stats._methodCorrect = top1->__GetMCCharge() * top2charge < 0;
+				_summary._nAfterKinematicCuts++;
+				return;
+			}
+		}
+		if (top2->GetComputedCharge().ByLepton && top1->GetComputedCharge().ByTrackCount)
+		{
+			int top2lepton = *(top2->GetComputedCharge().ByLepton );
+			int top1charge = *(top1->GetComputedCharge().ByTrackCount );
+			if (top1charge * top2lepton > 0)
+			{
+				_stats._qCostheta[0] = (top1charge < 0)? costheta: - costheta; 
+				std::cout << "Vertex + kaon for top2 is used!\n";
+				_stats._methodUsed = 7;
+				_stats._methodCorrect = top1->__GetMCCharge() * top1charge < 0;
+				_summary._nAfterKinematicCuts++;
+				return;
+			}
+		}//
+		// Lepton only
+		_stats._gammaT = e/m;
+		if (top2->GetComputedCharge().ByLepton && _stats._chiHad < 15) 
+		{
+			int top2lepton = *(top2->GetComputedCharge().ByLepton );
+			_stats._qCostheta[0] = (top2lepton < 0)? costheta: - costheta;
+			_stats._methodUsed = 8;
+			_summary._nAfterKinematicCuts++;
+			return;
+		}//*/
+		_stats._methodUsed = 0;
+		
+	}
+	void TTBarProcessor::AnalyseBBBar(LCEvent * evt)
+	{
+		try
+		{
+			std::cout << "***************Analysis*" <<_summary._nEvt++<<"*****************\n";
+			LCCollection * jetcol = evt->getCollection(_JetsColName);
+			LCCollection * jetrelcol = evt->getCollection(_JetsRelColName);
+			LCCollection * mccol = evt->getCollection(_MCColName);
+			LCCollection * mcvtxcol = evt->getCollection(_MCVtxColName);
+			MCOperator opera(mccol);
+			VertexChargeOperator vtxOperator(evt->getCollection(_colName),evt->getCollection(_colRelName));
+			vector < MCParticle * > mcbs = AnalyseGeneratorBBBar(opera);
+			vector< RecoJet * > * jets = getJets(jetcol, jetrelcol);
+			std::sort(jets->begin(), jets->end(), sortByBtag);
+			if (mcbs.size() != 2 || jets->at(0)->GetBTag() < 0.8 ) 
+			{
+				return;
+			}
+			std::cout << "--EVENT ACCEPTED--\n";
+			_stats._B1momentum = jets->at(0)->GetHadronMomentum(); //MathOperator::getModule(jets->at(0)->getMomentum());
+			_stats._B2momentum = jets->at(1)->GetHadronMomentum();//MathOperator::getModule(jets->at(1)->getMomentum());
+			_stats._B1btag = jets->at(0)->GetBTag();
+			_stats._B2btag = jets->at(1)->GetBTag();
+			_stats._B1charge =  jets->at(0)->GetHadronCharge();
+			_stats._B2charge =  jets->at(1)->GetHadronCharge();
+			vector<float> bdirection1 = MathOperator::getDirection(jets->at(0)->getMomentum());
+			vector<float> bdirection2 = MathOperator::getDirection(jets->at(1)->getMomentum());
+			_stats._B1costheta =( std::cos( MathOperator::getAngles(bdirection1)[1] ));
+			_stats._B2costheta =( std::cos( MathOperator::getAngles(bdirection2)[1] ));
+			MatchB(jets, mcbs, mcvtxcol);
+			ComputeCharge(jets);
+			_hTree->Fill();
+			ClearVariables();
+
+
+		}
+		catch(DataNotAvailableException &e)
+		{
+			std::cout << e.what() <<"\n";
+		}
+		
+	}
+	void TTBarProcessor::ComputeCharge(std::vector< RecoJet * > *jets)
+	{
+		//std::sort(jets->begin(), jets->end(), sortByCostheta);
+		PrintJets(jets);
+		if (jets->at(0)->__GetMCNtracks() != jets->at(0)->GetNumberOfVertexParticles()) 
+		{
+			return;	
+		}
+		/*if (jets->at(0)->__GetMCCharge() < 0) 
+		{
+			_stats._qCostheta[0] = _stats._B1costheta;
+			_stats._qCostheta[1] =-_stats._B2costheta;
+		}
+		else 
+		{
+			_stats._qCostheta[0] = -_stats._B1costheta;
+			_stats._qCostheta[1] = _stats._B2costheta;
+
+		}
+		return;*/
+		if (_stats._B1charge * _stats._B2charge < 0 && _stats._B1momentum > 0 && _stats._B2momentum > 0) 
+		{
+			int b1charge = _stats._B1charge  / std::abs(_stats._B1charge);
+			int b2charge = _stats._B2charge  / std::abs(_stats._B2charge);
+			_stats._qCostheta[0] = -_stats._B1costheta * b1charge;
+			_stats._qCostheta[1] = -_stats._B2costheta * b2charge;
 		}
 		
 	}
@@ -611,9 +881,9 @@ namespace TTbarAnalysis
 		_stats._chiTopMass = std::pow(mT - _TopMassparameter, 2) / std::pow( _TopMassSigmaparameter, 2) ;
 		_stats._chiTopE = std::pow(ET - _EBeamparameter , 2) / std::pow( _EBeamSigmaparameter, 2); 
 		_stats._chiPbstar = std::pow( bpstar - _PStarparameter, 2) / std::pow( _PStarSigmaparameter, 2);
-		_stats._chiGammaT = 0; //std::pow( gamma - _GammaTparameter, 2) / std::pow( _GammaTSigmaparameter, 2); 
+		_stats._chiGammaT = std::pow( gamma - _GammaTparameter, 2) / std::pow( _GammaTSigmaparameter, 2); 
 		_stats._chiCosWb = std::pow( cosbW - _CosbWparameter, 2) / std::pow( _CosbWSigmaparameter, 2);
-		float chi2 = _stats._chiTopMass + _stats._chiTopE + _stats._chiPbstar + _stats._chiGammaT + _stats._chiCosWb;
+		float chi2 = _stats._chiTopMass + _stats._chiTopE + _stats._chiPbstar  + _stats._chiCosWb;
 		//float chi2 = std::pow( mT - _stats._TopMassparameter, 2) / std::pow( _stats._TopMassSigmaparameter, 2) + 
 		//	     std::pow(ET - _EBeamparameter , 2) / std::pow( _EBeamSigmaparameter, 2) +
 		//	     std::pow( bpstar - _PStarparameter, 2) / std::pow( _PStarSigmaparameter, 2) +
@@ -633,58 +903,37 @@ namespace TTbarAnalysis
 			std::cout << "Wjets are NULL!\n";
 			return result;
 		}
+		if (alljets->size() != 4) 
+		{
+			return result;
+		}
+		//vector<RecoJet>
+		std::cout << "Before sorting:\n";
 		for (unsigned int i = 0; i < alljets->size(); i++) 
 		{
 			RecoJet * jet = alljets->at(i);
-			if (jet->GetBTag() > _lowBTagCutparameter) 
+			std::cout << "\tB tag: " << jet->GetBTag()  << "\n";
+			/*if (jet->GetBTag() > _lowBTagCutparameter) 
 			{
 				result->push_back(jet);
 			}
 			else 
 			{
 				wjets->push_back(jet);
-			}
+			}*/
 		}
-		if (result->size() < 3) 
+		std::sort(alljets->begin(), alljets->end(), sortByBtag);
+		std::cout << "After sorting:\n";
+		for (int i = 0; i < alljets->size(); i++) 
 		{
-			return result;
+			RecoJet * jet = alljets->at(i);
+			std::cout << "\tB tag: " << jet->GetBTag()  << "\n";
+
 		}
-		RecoJet * bjet1 = NULL;
-		RecoJet * bjet2 = NULL;
-		if (result->size() > 2) 
-		{
-			float maxbtag = 0.0;
-			for (unsigned int i = 0; i < result->size(); i++) 
-			{
-				RecoJet * jet = result->at(i);
-				if (jet->GetBTag() > maxbtag) 
-				{
-					bjet1 = jet;
-					maxbtag = jet->GetBTag();
-				}
-			}
-			maxbtag = 0.0;
-			for (unsigned int i = 0; i < result->size(); i++) 
-			{
-				RecoJet * jet = result->at(i);
-				if (jet != bjet1 && jet->GetBTag() > maxbtag) 
-				{
-					bjet2 = jet;
-					maxbtag = jet->GetBTag();
-				}
-			}  
-			for (unsigned int i = 0; i < result->size(); i++) 
-			{
-				RecoJet * jet = result->at(i);
-				if (jet != bjet1 && jet != bjet2) 
-				{
-					wjets->push_back(jet);
-				}
-			}  
-		}
-		result->clear();
-		result->push_back(bjet1);
-		result->push_back(bjet2);
+		result->push_back(alljets->at(0));
+		result->push_back(alljets->at(1));
+		wjets->push_back(alljets->at(2));
+		wjets->push_back(alljets->at(3));
 		return result;
 	}
 	vector< RecoJet * > * TTBarProcessor::getJets(LCCollection * jetcol, LCCollection *jetrelcol)
@@ -735,7 +984,7 @@ namespace TTbarAnalysis
 		std::cout << "Jet E: " << jet->getEnergy()
 			  << " m: " << jet->getMass()
 			  << " btag: " << jet->GetBTag()
-			  << " ctag: " << jet->GetCTag()
+			  << " costheta: " << jet->GetCostheta()
 			  << " ntracks: " << jet->GetNumberOfVertexParticles()
 			  << "\n";
 	}
@@ -744,6 +993,13 @@ namespace TTbarAnalysis
 		 std::cout << "E: " << jet->getEnergy()
 		 	   <<" m: " << jet->getMass()
 			   <<" PDG: " << jet->getType()
+			   << "\n";
+	}
+	void TTBarProcessor::PrintParticle(MCParticle * jet)
+	{
+		 std::cout << "E: " << jet->getEnergy()
+		 	   <<" m: " << jet->getMass()
+			   <<" PDG: " << jet->getPDG()
 			   << "\n";
 	}
 	void TTBarProcessor::PrintJets(std::vector< RecoJet * > *jets)
@@ -826,6 +1082,60 @@ namespace TTbarAnalysis
 		if (top2) 
 		{
 			top2->__SetMCCharge(-charge);
+		}
+	}
+	void TTBarProcessor::MatchB(vector<RecoJet*> * bjets, vector< MCParticle * > & mcbs, LCCollection * mcvtxcol)
+	{
+		float charge = 0.0;
+		float angle = 4.0;
+		int bgenntracks = 0;
+		int bbargenntracks = 0;
+		_stats._MCBOscillation = 0;
+		_stats._MCBBarOscillation = 0;
+		if (mcvtxcol && mcvtxcol->getNumberOfElements() > 0) 
+		{
+			for (int i = 0; i < mcvtxcol->getNumberOfElements(); i++) 
+			{
+				Vertex * vertex = dynamic_cast< Vertex * >(mcvtxcol->getElementAt(i));
+				if (vertex->getParameters()[1] > 0) 
+				{
+					bgenntracks += vertex->getAssociatedParticle()->getParticles().size();
+				}
+				if (vertex->getParameters()[1] < 0) 
+				{
+					bbargenntracks += vertex->getAssociatedParticle()->getParticles().size();
+				}
+			}
+			_stats._MCBBarOscillation = mcvtxcol->getParameters().getIntVal("BBarOscillation");
+			_stats._MCBOscillation = mcvtxcol->getParameters().getIntVal("BOscillation");
+		}
+		for (int i = 0; i < mcbs.size(); i++) 
+		{
+			MCParticle * mcb = mcbs[i];
+			float angleCurrent =  MathOperator::getAngle(mcb->getMomentum(), bjets->at(0)->getMomentum());
+			if (angleCurrent < angle) 
+			{ 
+				angle = angleCurrent;
+				charge = mcb->getCharge();
+				bjets->at(0)->__SetMCCharge(charge);
+			}
+		}
+		std::cout << "Truth Angle: " << angle << " charge: " << charge << "\n";
+		_stats._B1truthAngle = angle;
+		bjets->at(1)->__SetMCCharge(-charge);
+		if ( bjets->at(0)->__GetMCCharge() < 0) 
+		{
+			bjets->at(0)->__SetMCNtracks(bgenntracks);
+			bjets->at(0)->__SetMCOscillation(_stats._MCBOscillation);
+			bjets->at(1)->__SetMCNtracks(bbargenntracks);
+			bjets->at(1)->__SetMCOscillation(_stats._MCBBarOscillation);
+		}
+		else 
+		{
+			bjets->at(0)->__SetMCNtracks(bbargenntracks);
+			bjets->at(0)->__SetMCOscillation(_stats._MCBBarOscillation);
+			bjets->at(1)->__SetMCNtracks(bgenntracks);
+			bjets->at(1)->__SetMCOscillation(_stats._MCBOscillation);
 		}
 	}
 	void TTBarProcessor::MatchB(std::vector< EVENT::MCParticle * > & mcbs, TopQuark * topHadronic, TopQuark * top2, LCCollection * mcvtxcol)
@@ -917,4 +1227,3 @@ namespace TTbarAnalysis
 		return str;
 	}
 }
-	

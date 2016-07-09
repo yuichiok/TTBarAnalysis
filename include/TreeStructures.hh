@@ -10,6 +10,7 @@ namespace TTbarAnalysis
 		int _nAfterBtagCuts;
 		int _nAfterKinematicCuts;
 		int _nAfterLeptonCuts;
+		int _nAfterMassCuts;
 		int _nChargedB;
 		int _nKaons;
 		void Clear()
@@ -19,6 +20,7 @@ namespace TTbarAnalysis
 			_nAfterBtagCuts = 0;
 			_nAfterKinematicCuts = 0;
 			_nAfterLeptonCuts = 0;
+			_nAfterMassCuts = 0;
 			_nChargedB = 0;
 			_nKaons = 0;
 
@@ -26,6 +28,17 @@ namespace TTbarAnalysis
 	};
 	struct StatsData 
 	{
+		float _B1momentum;
+		float _B2momentum;
+		float _B2btag;
+		float _B1btag;
+		float _B1costheta;
+		float _B2costheta;
+		float _B1truthAngle;
+		int _B1charge;
+		int _B2charge;
+
+
 		int _mctag;
 		int _recotag;
 		float _W1mass;
@@ -46,6 +59,11 @@ namespace TTbarAnalysis
 		float _Top1bcostheta;
 		float _Top1cosWb;
 		float _Top1truthAngle;
+		int _Top1Vtx;
+		int _Top1Kaon;
+		int _Top1KaonNumber;
+		int _Top1KaonCharges[10];
+		float _Top1KaonMomentum[10];
 		int _Top1bTVCM;
 		int _Top2bntracks;
 		int _Top2bTVCM;
@@ -58,6 +76,11 @@ namespace TTbarAnalysis
 		float _Top2momentum;
 		float _Top2costheta;
 		float _Top2bcostheta;
+		int _Top2Vtx;
+		int _Top2Kaon;
+		int _Top2KaonNumber;
+		int _Top2KaonCharges[10];
+		float _Top2KaonMomentum[10];
 		int _Top2leptonCharge;
 		int _Top2leptonCorrect;
 		float _qCostheta[2];
@@ -74,6 +97,9 @@ namespace TTbarAnalysis
 		int _MCBBarOscillation;
 		float _MCTopBangle;
 		//float _MCTopBarBangle;
+		int _MCLeptonPDG;
+		float _MCLeptonMomentum;
+		float _MCLeptonCostheta;
 		float _MCTopmomentum;
 		float _MCTopmass;
 		float _MCTopcostheta;
@@ -83,14 +109,31 @@ namespace TTbarAnalysis
 		float _MCTopcosWb;
 		float _MCTopcosWt;
 		float _qMCcostheta[2];
+		float _MCMass;
 		float _qMCBcostheta[2];
 		float _MCNeutrinoEnergy;
 		float _totalEnergy;
 		float _missedEnergy;
+		float _gammaT;
 		
 		void Clear()
 		{
+			_B1momentum = -1.0;
+			_B2momentum = -1.0;
+			_B2btag = -1.;
+			_B1btag = -1.0;
+			_B1costheta = -2.0;
+			_B2costheta = -2.0;
+			_B1charge = -5.0;
+			_B2charge = -5.0;
+			_B1truthAngle = -1.0;
+
+
+			_MCLeptonMomentum = -1.0;
+			_MCLeptonCostheta = -2.0;
+			_MCLeptonPDG = 0;
 			_MCTopmass = -1.0;
+			_MCMass = -1.0;
 			_MCTopBarmass = -1.0;
 			_MCTopmomentum = -1.0;
 			_MCTopBarmomentum = -1.0;
@@ -104,6 +147,7 @@ namespace TTbarAnalysis
 			_MCTopcosWb = -2.0;
 			_Top1mass = -1.0;
 			_W1mass = -1.0;
+			_W2costheta = -2.0;
 			_chiHad = -1.0;
 			_methodUsed = -1;
 			_methodCorrect = -1;
