@@ -8,8 +8,27 @@
 
 #ifndef _RecoJet_hh
 #define _RecoJet_hh
-namespace TTbarAnalysis 
+namespace TTBarProcessor 
 {
+	struct JetCharge
+	{
+		JetCharge()
+		{
+			ByTVCM = NULL;
+			ByTrackCount = NULL;
+			ByLepton = NULL;
+		}
+		~JetCharge()
+		{
+			delete ByTVCM;
+			delete ByTrackCount;
+			delete ByLepton;
+		}
+
+		int * ByTVCM;
+		int * ByTrackCount;
+		int * ByLepton;
+	};
 	class RecoJet : public IMPL::ReconstructedParticleImpl
 	{
 		public:
@@ -26,8 +45,9 @@ namespace TTbarAnalysis
 		//
 		//	Methods
 		//
+			JetCharge & GetComputedCharge();
 			const float GetBTag() const;
-			float GetCTag();
+			const float GetCTag() const;
 			void SetBTag(float value);
 			void SetCTag(float value);
 			void SetRecoVertices(std::vector<  EVENT::Vertex * > * vertices);
@@ -63,6 +83,7 @@ namespace TTbarAnalysis
 			float myMCCharge;
 			int myMCNtracks;
 			int myMCOscillation;
+			JetCharge myComputedCharge;
 			 EVENT::ReconstructedParticle * myRawRecoJet;
 			 std::vector<  EVENT::Vertex * > * myRecoVertices;
 		//

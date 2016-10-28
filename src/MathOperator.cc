@@ -1,6 +1,6 @@
 #include "MathOperator.hh"
 using std::vector;
-namespace TTbarAnalysis 
+namespace TTBarProcessor 
 {
 	bool MathOperator::approximatelyEqual(const double * start1, const double * start2)
 	{
@@ -404,9 +404,24 @@ namespace TTbarAnalysis
 	{
 		double sum[3];
 		vector< double * > pts;
+		float * newtarget = NULL;
+		if (!target) 
+		{
+			newtarget = new float[3]();
+			newtarget[0] = 0.;
+			newtarget[1] = 0.;
+			newtarget[2] = 1.;
+		}
 		for (int i = 0; i < vectors.size(); i++) 
 		{
-			pts.push_back(getPtOnVector(vectors[i], target));
+			if (target) 
+			{
+				pts.push_back(getPtOnVector(vectors[i], target));
+			}
+			else 
+			{
+				pts.push_back(getPtOnVector(vectors[i], newtarget));
+			}
 		}
 		for (int i = 0; i < 3; i++) 
 		{

@@ -22,7 +22,7 @@
 
 #include "MathOperator.hh"
 #include "VertexChargeOperator.hh"
-#include "MCOperator.hh"
+#include "QQBarMCOperator.hh"
 #include "TopQuark.hh"
 #include "RecoJet.hh"
 #include "TreeWriter.hh"
@@ -31,7 +31,7 @@ using namespace lcio ;
 using namespace marlin ;
 
 
-namespace TTbarAnalysis 
+namespace TTBarProcessor 
 {
 	enum ANALYSIS_TYPE
 	{
@@ -73,10 +73,14 @@ namespace TTbarAnalysis
 	  std::vector< Vertex * > * convert(const std::vector< LCObject * > & objs);
 	  std::vector< RecoJet * > * getBTagJets(std::vector< RecoJet * > * alljets, std::vector< RecoJet * > * wjets = NULL);
 	  std::vector< RecoJet * > * getJets(LCCollection * jetcol, LCCollection *jetrelcol);
-	  std::vector< EVENT::MCParticle * > AnalyseGenerator(MCOperator & opera);
-	  std::vector< EVENT::MCParticle * > AnalyseGeneratorBBBar(MCOperator & opera);
+	  std::vector< EVENT::MCParticle * > AnalyseGenerator(QQBarMCOperator & opera);
+	  std::vector< EVENT::MCParticle * > AnalyseGeneratorBBBar(QQBarMCOperator & opera);
+
+	  std::vector< RecoJet * > * formW(std::vector< RecoJet * > * wjets);
+	  std::vector< TopQuark * > * composeTops(std::vector< RecoJet * > * bjets, std::vector< RecoJet * > * wjets);
 
 	  void AnalyseTTBarSemiLeptonic(LCEvent * evt);
+	  void AnalyseTTBarHadronic(LCEvent * evt);
 	  void AnalyseBBBar(LCEvent * evt);
 
 	  void Match(std::vector< EVENT::MCParticle * > & mctops, TopQuark * topHadronic,  TopQuark * top2 =NULL );
@@ -84,7 +88,7 @@ namespace TTbarAnalysis
 	  void MatchB(std::vector< EVENT::MCParticle * > & mcbs, TopQuark * topHadronic, TopQuark * top2 =NULL, LCCollection * mcvtxcol = NULL);
 	  void PrintJet(RecoJet * jet);
 	  void PrintJets(std::vector< RecoJet * > *jets);
-	  void ComputeCharge(std::vector< RecoJet * > *jets);
+	  void ComputeCharge(std::vector< RecoJet * > *jets, VertexChargeOperator & vtxOperator);
 	  void ComputeCharge(TopQuark * top, TopQuark * top2);
 	  void ComputeChargeLepton(TopQuark * top, TopQuark * top2);
 	  void __ComputeChargeCheat(TopQuark * top, TopQuark * top2);
@@ -95,9 +99,11 @@ namespace TTbarAnalysis
 	  void PrintParticle(EVENT::ReconstructedParticle * particle);
 	  void PrintParticle(EVENT::MCParticle * particle);
 	  void ComputeChargeTVCM(TopQuark * top, TopQuark * top2, VertexChargeOperator & vtxOperator);
+	  EVENT::ReconstructedParticle * findPhoton(LCCollection * pfocol);
 //	  bool sortByBtag(const RecoJet &lhs, const RecoJet &rhs) {return lhs.GetBTag() < rhs.GetBTag(); }
 	 protected:
 	  std::string intToStr(int * number);
+	  std::vector<int> getOpposite(int i, int j);
 	  /** Input collection name.
 	   */
 	  int _type;
@@ -112,10 +118,12 @@ namespace TTbarAnalysis
 	  std::string _MCVtxColName ;
 	  std::string _colRelName;
 	  int _ePolarization;
+	  float _massCutparameter;
 	  float _Ebeamparameter;
 	  float _lowBTagCutparameter;
 	  float _highBTagCutparameter;
 	  float _WMassparameter;
+	  float _WMassSigmaparameter;
 	  float _TopMassparameter;
 	  float _TopMassSigmaparameter;
 	  float _EBeamparameter;

@@ -9,7 +9,7 @@
 #include <EVENT/LCObject.h>
 #include <UTIL/LCRelationNavigator.h>
 #include <EVENT/LCCollection.h>
-namespace TTbarAnalysis 
+namespace TTBarProcessor 
 {
 	class VertexChargeOperator 
 	{
@@ -30,8 +30,8 @@ namespace TTbarAnalysis
 			float GetAsymmetryTVCM(TopQuark * top, TopQuark * top2); //TernaryVertexChargeMeasurement
 			int GetResultingB();
 			int CountKaons(TopQuark * top, TopQuark * top2);
-			std::vector< EVENT::ReconstructedParticle * > GetKaons(TopQuark * top);
-			float ComputeCharge(TopQuark * top);
+			std::vector< EVENT::ReconstructedParticle * > GetKaons(RecoJet * top);
+			float ComputeCharge(RecoJet * top);
 		private:
 		//
 		//	Data
@@ -54,4 +54,4 @@ namespace TTbarAnalysis
 			std::vector< EVENT::ReconstructedParticle * > getKaons(const std::vector< EVENT::ReconstructedParticle * > & particles);
 			float checkAsymmetry(TopQuark * top, EVENT::Vertex * vertex1, EVENT::ReconstructedParticle * kaon1, float & top1costheta);
 	};
-} /* TTbarAnalysis */
+} /* TTBarProcessor */

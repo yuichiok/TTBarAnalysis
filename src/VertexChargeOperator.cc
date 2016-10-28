@@ -7,7 +7,7 @@ using EVENT::Track;
 using EVENT::LCObject;
 using std::vector;
 using EVENT::LCCollection;
-namespace TTbarAnalysis 
+namespace TTBarProcessor 
 {
 	const float VertexChargeOperator::BMASS = 5.279;
 	const float VertexChargeOperator::CTAU = 0.4554;
@@ -57,7 +57,7 @@ namespace TTbarAnalysis
 		return result;
 	}
 
-	vector< ReconstructedParticle * > VertexChargeOperator::GetKaons(TopQuark * top)
+	vector< ReconstructedParticle * > VertexChargeOperator::GetKaons(RecoJet * top)
 	{
 		vector< Vertex * > * vertices = top->GetRecoVertices();
 		vector< ReconstructedParticle * > secparticles;
@@ -68,7 +68,8 @@ namespace TTbarAnalysis
 			secparticles.insert(secparticles.end(), vertices->at(i)->getAssociatedParticle()->getParticles().begin(), vertices->at(i)->getAssociatedParticle()->getParticles().end());
 		}
 		//return __filterOutCheat(getKaons(secparticles),2212); //__getKaonsCheat(secparticles);
-		return getKaons(secparticles); //__getKaonsCheat(secparticles);
+		return __getKaonsCheat(secparticles); //__getKaonsCheat(secparticles);
+		//return getKaons(secparticles); //__getKaonsCheat(secparticles);
 	}
 	int VertexChargeOperator::CountKaons(TopQuark * top1, TopQuark * top2)
 	{
@@ -83,10 +84,10 @@ namespace TTbarAnalysis
 		return 0;
 	}
 	
-	float VertexChargeOperator::ComputeCharge(TopQuark * top)
+	float VertexChargeOperator::ComputeCharge(RecoJet * top)
 	{
 		float result = -2.;
-		Vertex * vertex =  getTernaryVertex(top);
+		//Vertex * vertex =  getTernaryVertex(top);
 		//ReconstructedParticle * kaon = getKaon(vertex);
 		vector<float> direction = MathOperator::getDirection(top->getMomentum());
 		float top1costheta =  std::cos( MathOperator::getAngles(direction)[1] );
@@ -97,7 +98,7 @@ namespace TTbarAnalysis
 		}*/
 		/*if (kaons.size() == 1) 
 		{
-			TopCharge & topCharge = top1->GetComputedCharge();
+			JetCharge & topCharge = top1->GetComputedCharge();
 			result = (kaons[0]->getCharge() < 0.0) ? top1costheta : -top1costheta;
 			topCharge.ByTVCM = new int(kaons->getCharge());
 		}*/
@@ -109,7 +110,7 @@ namespace TTbarAnalysis
 		}
 		if (kaons.size() > 0 && abs(sum) > 0.0) 
 		{
-			TopCharge & topCharge = top->GetComputedCharge();
+			JetCharge & topCharge = top->GetComputedCharge();
 			result = (sum < 0.0) ? top1costheta : -top1costheta;
 			int sign = sum / abs(sum);
 			topCharge.ByTVCM = new int(sign);
@@ -339,4 +340,4 @@ namespace TTbarAnalysis
 		return result;
 	}
 
-} /* TTbarAnalysis */
+} /* TTBarProcessor */

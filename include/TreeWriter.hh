@@ -6,7 +6,7 @@
 #include "TreeStructures.hh"
 #ifndef _TreeWriter_hh
 #define _TreeWriter_hh
-namespace TTbarAnalysis 
+namespace TTBarProcessor 
 {
 	class TreeWriter 
 	{

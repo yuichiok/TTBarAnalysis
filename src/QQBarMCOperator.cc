@@ -1,18 +1,18 @@
-#include "MCOperator.hh"
+#include "QQBarMCOperator.hh"
 using std::vector;
 using std::string;
 using EVENT::LCCollection;
 using EVENT::MCParticle;
 using IMPL::MCParticleImpl;
-namespace TTbarAnalysis
+namespace TTBarProcessor
 {
-	MCOperator:: MCOperator (LCCollection * col)
+	QQBarMCOperator:: QQBarMCOperator (LCCollection * col)
 	{
 		myCollection = col;
 		myNeutrino = NULL;
 	}
 	//DO NOT USE THAT ON T-QUARKS!!!
-	vector< MCParticle * > MCOperator::GetPairParticles(int pdg)
+	vector< MCParticle * > QQBarMCOperator::GetPairParticles(int pdg)
 	{
 		pdg = abs(pdg);
 		vector< MCParticle * > pair;
@@ -26,11 +26,11 @@ namespace TTbarAnalysis
 		for (int i = 0; i < number; i++) 
 		{
 			MCParticle * particle = dynamic_cast<MCParticle*>( myCollection->getElementAt(i) );
-			if (particle->getPDG() == pdg)// && countParticle == 0) 
+			if (particle->getPDG() == pdg&& !b)// &&  countParticle == 0) 
 			{
 				b = particle;
 			}
-			if (particle->getPDG() == -pdg)// && countAntiparticle == 0) 
+			if (particle->getPDG() == -pdg  && !bbar)//&& countAntiparticle == 0) 
 			{
 				bbar =  particle;
 			}
@@ -45,7 +45,7 @@ namespace TTbarAnalysis
 		}
 		return pair;
 	}
-	vector< MCParticle * > MCOperator::GetTopPairParticles(float & topBangle, float & topcosWb)
+	vector< MCParticle * > QQBarMCOperator::GetTopPairParticles(float & topBangle, float & topcosWb)
 	{
 		vector< MCParticle * > pair;
 		MCParticle * b = FindParticle(5);
@@ -100,11 +100,11 @@ namespace TTbarAnalysis
 		pair.push_back(topbar);
 		return pair;
 	}
-	vector< MCParticle * > MCOperator::GetBquarkPair()
+	vector< MCParticle * > QQBarMCOperator::GetBquarkPair()
 	{
 		return myBquarkPair;
 	}
-	MCParticle * MCOperator::CombineParticles(EVENT::MCParticle * b, EVENT::MCParticle * w)
+	MCParticle * QQBarMCOperator::CombineParticles(EVENT::MCParticle * b, EVENT::MCParticle * w)
 	{
 		MCParticleImpl * result = new MCParticleImpl();
 		double energy = b->getEnergy() + w->getEnergy();
@@ -124,7 +124,7 @@ namespace TTbarAnalysis
 		return result;
 	}
 
-	vector <MCParticle *> MCOperator::GetFinalState()
+	vector <MCParticle *> QQBarMCOperator::GetFinalState()
 	{
 		vector <MCParticle *> result;
 		MCParticle * particle = dynamic_cast<MCParticle*>( myCollection->getElementAt(2) );
@@ -151,7 +151,7 @@ namespace TTbarAnalysis
 		}
 		return result;
 	}
-	MCParticle * MCOperator::FindParticle(int pdg)
+	MCParticle * QQBarMCOperator::FindParticle(int pdg)
 	{
 		int number = myCollection->getNumberOfElements();
 		MCParticle * result = NULL;
@@ -170,7 +170,7 @@ namespace TTbarAnalysis
 		}
 		return result;
 	}
-	MCParticle * MCOperator::GetNeutrino()
+	MCParticle * QQBarMCOperator::GetNeutrino()
 	{
 		return myNeutrino;
 	}

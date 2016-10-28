@@ -1,7 +1,7 @@
 #include "TopQuark.hh"
 using EVENT::ReconstructedParticle;
 using IMPL::ReconstructedParticleImpl;
-namespace TTbarAnalysis 
+namespace TTBarProcessor 
 {
 	TopQuark::TopQuark(RecoJet * b, ReconstructedParticle * w)
 	{
@@ -72,10 +72,6 @@ namespace TTbarAnalysis
 	void TopQuark::SetResultTVCM(int used)
 	{
 		myResultTVCM = used;
-	}
-	TopCharge & TopQuark::GetComputedCharge()
-	{
-		return myComputedCharge;
 	}
 	
 } /* TTBarAnalisys */

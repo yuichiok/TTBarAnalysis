@@ -2,13 +2,14 @@
 using std::string;
 using std::vector;
 
-namespace TTbarAnalysis 
+namespace TTBarProcessor 
 {
 	TreeWriter:: TreeWriter() {}
 	void TreeWriter::InitializeSummaryTree(TTree * _hSumTree, SummaryData & data)
 	{	
 		_hSumTree->Branch("nEvents", &data._nEvt, "nEvents/I");
 		_hSumTree->Branch("nGenUsed", &data._nGenUsed, "nGenUsed/I");
+		_hSumTree->Branch("nAfterGenMassCuts", &data._nAfterGenMassCuts, "nAfterGenMassCuts/I");
 		_hSumTree->Branch("nAfterLeptonCuts", &data._nAfterLeptonCuts, "nAfterLeptonCuts/I");
 		_hSumTree->Branch("nAfterBtagCuts", &data._nAfterBtagCuts, "nAfterBtagCuts/I");
 		_hSumTree->Branch("nKaons", &data._nKaons, "nKaons/I");
@@ -20,16 +21,36 @@ namespace TTbarAnalysis
 	void TreeWriter::InitializeStatsBBBarTree(TTree * _hTree, StatsData & data)
 	{
 		_hTree->Branch("qMCcostheta", data._qMCcostheta, "qMCcostheta[2]/F");
+		_hTree->Branch("MCMass", &data._MCMass, "MCMass/F");
+		_hTree->Branch("MCPDG", &data._MCPDG, "MCPDG/F");
+		//_hTree->Branch("MCPt", &data._MCPt, "MCPt/F");
 		_hTree->Branch("B1momentum", &data._B1momentum, "B1momentum/F");
 		_hTree->Branch("B2momentum", &data._B2momentum, "B2momentum/F");
 		_hTree->Branch("B1btag", &data._B1btag, "B1btag/F");
 		_hTree->Branch("B2btag", &data._B2btag, "B2btag/F");
 		_hTree->Branch("B1charge", &data._B1charge, "B1charge/I");
 		_hTree->Branch("B2charge", &data._B2charge, "B2charge/I");
+		_hTree->Branch("B1VtxTag", &data._B1VtxTag, "B1VtxTag/I");
+		_hTree->Branch("B2VtxTag", &data._B2VtxTag, "B2VtxTag/I");
+		_hTree->Branch("B1KaonTag", &data._B1KaonTag, "B1KaonTag/I");
+		_hTree->Branch("B2KaonTag", &data._B2KaonTag, "B2KaonTag/I");
 		_hTree->Branch("B1costheta", &data._B1costheta, "B1costheta/F");
 		_hTree->Branch("B2costheta", &data._B2costheta, "B2costheta/F");
 		_hTree->Branch("B1truthAngle", &data._B1truthAngle, "B1truthAngle/F");
+		_hTree->Branch("bbbarAngle", &data._bbbarAngle, "bbbarAngle/F");
+		_hTree->Branch("bbbarPt", &data._bbbarPt, "bbbarPt/F");
+		_hTree->Branch("bbbarP", &data._bbbarP, "bbbarP/F");
+		_hTree->Branch("InvMass", &data._InvMass, "InvMass/F");
+		_hTree->Branch("maxPhotonEnergy", &data._maxPhotonEnergy, "maxPhotonEnergy/F");
+		_hTree->Branch("maxPhotonCostheta", &data._maxPhotonCostheta, "maxPhotonCostheta/F");
 		_hTree->Branch("qCostheta", data._qCostheta, "qCostheta[2]/F");
+		_hTree->Branch("qCostheta1", &data._qCostheta1, "qCostheta1/F");
+		_hTree->Branch("qCostheta2", &data._qCostheta2, "qCostheta2/F");
+		_hTree->Branch("methodUsed", &data._methodUsed, "methodUsed/I");
+		_hTree->Branch("methodRefused", &data._methodRefused, "methodRefused/I");
+		_hTree->Branch("methodCorrect", &data._methodCorrect, "methodCorrect/I");
+		_hTree->Branch("methodSameCharge", data._methodSameCharge, "methodSameCharge[methodRefused]/I");
+		_hTree->Branch("methodTaken", data._methodTaken, "methodTaken[methodUsed]/I");
 		
 	}
 	void TreeWriter::InitializeStatsTree(TTree * _hTree, StatsData & data)
@@ -37,6 +58,7 @@ namespace TTbarAnalysis
 		//Generated
 		_hTree->Branch("mctag", &data._mctag, "mctag/I");
 		_hTree->Branch("MCTopmass", &data._MCTopmass, "MCTopmass/F");
+		_hTree->Branch("MCquarkAngle", &data._MCquarkAngle, "MCquarkAngle/F");
 		_hTree->Branch("MCTopmomentum", &data._MCTopmomentum, "MCTopmomentum/F");
 		_hTree->Branch("MCTopcostheta", &data._MCTopcostheta, "MCTopcostheta/F");
 		_hTree->Branch("MCTopBarmass", &data._MCTopBarmass, "MCTopBarmass/F");
@@ -59,6 +81,7 @@ namespace TTbarAnalysis
 		_hTree->Branch("W1mass", &data._W1mass, "W1mass/F");
 		_hTree->Branch("W1momentum", &data._W1momentum, "W1momentum/F");
 		_hTree->Branch("W1costheta", &data._W1costheta, "W1costheta/F");
+		_hTree->Branch("W2mass", &data._W2mass, "W2mass/F");
 		_hTree->Branch("W2momentum", &data._W2momentum, "W2momentum/F");
 		_hTree->Branch("W2costheta", &data._W2costheta, "W2costheta/F");
 		_hTree->Branch("Top1mass", &data._Top1mass, "Top1mass/F");
@@ -77,6 +100,7 @@ namespace TTbarAnalysis
 		_hTree->Branch("Top1KaonNumber", &data._Top1KaonNumber, "Top1KaonNumber/I");
 		_hTree->Branch("Top1KaonCharges", data._Top1KaonCharges, "Top1KaonCharges[Top1KaonNumber]/I");
 		_hTree->Branch("Top1KaonMomentum", data._Top1KaonMomentum, "Top1KaonMomentum[Top1KaonNumber]/F");
+		_hTree->Branch("Top2mass", &data._Top2mass, "Top2mass/F");
 		_hTree->Branch("Top2bmomentum", &data._Top2bmomentum, "Top2bmomentum/F");
 		_hTree->Branch("Top2bdistance", &data._Top2bdistance, "Top2bdistance/F");
 		_hTree->Branch("Top2bcharge", &data._Top2bcharge, "Top2bcharge/I");
@@ -92,7 +116,10 @@ namespace TTbarAnalysis
 		_hTree->Branch("Top2KaonMomentum", data._Top2KaonMomentum, "Top2KaonMomentum[Top2KaonNumber]/F");
 		_hTree->Branch("UsedBTVCM", &data._UsedBTVCM, "UsedBTVCM/I");
 		_hTree->Branch("methodUsed", &data._methodUsed, "methodUsed/I");
+		_hTree->Branch("methodRefused", &data._methodRefused, "methodRefused/I");
 		_hTree->Branch("methodCorrect", &data._methodCorrect, "methodCorrect/I");
+		_hTree->Branch("methodSameCharge", data._methodSameCharge, "methodSameCharge[methodRefused]/I");
+		_hTree->Branch("methodTaken", data._methodTaken, "methodTaken[methodUsed]/I");
 		_hTree->Branch("qCostheta", data._qCostheta, "qCostheta[2]/F");
 		_hTree->Branch("chiHad", &data._chiHad, "chiHad/F");
 		_hTree->Branch("chiTopMass", &data._chiTopMass, "chiTopMass/F");

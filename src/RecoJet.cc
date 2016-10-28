@@ -3,7 +3,7 @@
 using EVENT::ReconstructedParticle;
 using IMPL::ReconstructedParticleImpl;
 using std::vector;
-namespace TTbarAnalysis
+namespace TTBarProcessor
 {
 	RecoJet::RecoJet (ReconstructedParticle * rawjet, float btag,float ctag, int number)
 	//: IMPL::ReconstructedParticleImpl(rawjet)
@@ -48,7 +48,7 @@ namespace TTbarAnalysis
 	{
 		return myBTag;
 	}
-	float RecoJet::GetCTag()
+	const float RecoJet::GetCTag() const
 	{
 		return myCTag;
 	}
@@ -195,6 +195,10 @@ namespace TTbarAnalysis
 	void RecoJet::__SetMCOscillation(int n)
 	{
 		myMCOscillation = n;
+	}
+	JetCharge & RecoJet::GetComputedCharge()
+	{
+		return myComputedCharge;
 	}
 
 }

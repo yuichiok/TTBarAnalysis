@@ -4,7 +4,7 @@
 #include <cmath>
 #include <vector>
 #include <iostream>
-namespace TTbarAnalysis 
+namespace TTBarProcessor 
 {
 	class MathOperator 
 	{
@@ -48,7 +48,7 @@ namespace TTbarAnalysis
 			static std::vector< int > * getPoint(int x, int y, int z);
 			static double * getPtOnVector(const double * momentum, const float * target);
 			static float getPt(const double * momentum);
-			static double getMissingPt(std::vector< const double * > & vectors, const float * target);
+			static double getMissingPt(std::vector< const double * > & vectors, const float * target = NULL);
 			static double * toDoubleArray(const float * target, int size);
 		private:
 		//

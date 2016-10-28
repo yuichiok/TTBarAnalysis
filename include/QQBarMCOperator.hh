@@ -9,11 +9,11 @@
 #include "MathOperator.hh"
 
 #include "marlin/VerbosityLevels.h"
-#ifndef _MCOperator_hh
-#define _MCOperator_hh
-namespace TTbarAnalysis 
+#ifndef _QQBarMCOperator_hh
+#define _QQBarMCOperator_hh
+namespace TTBarProcessor 
 {
-	class MCOperator 
+	class QQBarMCOperator 
 	{
 		public:
 		//
@@ -23,8 +23,8 @@ namespace TTbarAnalysis
 		//
 		//	Constructors
 		//
-			MCOperator (EVENT::LCCollection * col);
-			virtual ~MCOperator () {};
+			QQBarMCOperator (EVENT::LCCollection * col);
+			virtual ~QQBarMCOperator () {};
 		//
 		//	Methods
 		//
