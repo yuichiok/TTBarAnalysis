@@ -1,4 +1,6 @@
 #include <vector>
+#include <ctime>
+#include <cstdlib>
 #include "MathOperator.hh"
 #include "TopQuark.hh"
 #include <UTIL/PIDHandler.h>
@@ -19,6 +21,7 @@ namespace TTBarProcessor
 		//
 			static const float BMASS;// = 5.279; //GeV
 			static const float CTAU;// = 0.4554; 
+
 		//
 		//	Constructors
 		//
@@ -39,12 +42,14 @@ namespace TTBarProcessor
 			EVENT::LCCollection * myRelCollection;
 			EVENT::LCCollection * myPFOCollection;
 			int myResultingB;
+			bool doCheating;
 			std::string myAlgorithmName;
 			UTIL::PIDHandler * myPIDHandler;
 			
 		//
 		//	Private methods
 		//
+			bool __magicBall(float threshold, float seed = 0.0);
 			EVENT::Vertex * getTernaryVertex(TopQuark * top);
 			EVENT::ReconstructedParticle * getFlavourParticle(EVENT::Vertex * ternary);
 			EVENT::ReconstructedParticle * __getKaonCheat(EVENT::Vertex * ternary);

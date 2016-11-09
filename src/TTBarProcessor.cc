@@ -177,7 +177,10 @@ namespace TTBarProcessor
 				_summary._nAfterGenMassCuts++;
 			}
 			std::cout << "Generated mass: " << Z->getMass() << " Sp: " << _stats._MCPt << " angle: " << _stats._MCquarkAngle << "\n";
-			_summary._nGenUsed++;
+			if (_stats._MCPDG == 5) 
+			{
+				_summary._nGenUsed++;
+			}
 			_hGenTree->Fill();
 		}
 		return genfinalstate;
@@ -1067,7 +1070,8 @@ namespace TTBarProcessor
 			{
 				return;
 			}
-			if (_stats._MCMass > _massCutparameter) 
+			std::cout << "MCPDG: " << _stats._MCPDG << "\n";
+			if (_stats._MCMass > _massCutparameter && _stats._MCPDG == 5) 
 			{
 				_summary._nAfterBtagCuts++;
 			}
@@ -1099,8 +1103,14 @@ namespace TTBarProcessor
 			findPhoton(evt->getCollection(_colName));
 			_hTree->Fill();
 			ClearVariables();
-
-
+			delete Zboson;
+			for (unsigned int i = jets->size(); i > -1; i--) 
+			{
+				RecoJet * jet = jets->at(i);
+				jets->pop_back();
+				delete jet;
+			}
+			delete jets;
 		}
 		catch(DataNotAvailableException &e)
 		{

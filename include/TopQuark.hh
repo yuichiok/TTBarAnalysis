@@ -22,6 +22,7 @@ namespace TTBarProcessor
 			TopQuark (RecoJet * b);
 			virtual ~TopQuark () 
 			{
+				//delete myB;
 			};
 		//
 		//	Methods

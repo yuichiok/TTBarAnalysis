@@ -14,6 +14,7 @@ namespace TTBarProcessor
 	VertexChargeOperator:: VertexChargeOperator(LCCollection * pfo, LCCollection * rel)
 	{
 		myResultingB = 0;
+		doCheating = true;
 		myRelCollection = rel;
 		myAlgorithmName = "HadronTagger";
 		if (pfo) 
@@ -68,8 +69,11 @@ namespace TTBarProcessor
 			secparticles.insert(secparticles.end(), vertices->at(i)->getAssociatedParticle()->getParticles().begin(), vertices->at(i)->getAssociatedParticle()->getParticles().end());
 		}
 		//return __filterOutCheat(getKaons(secparticles),2212); //__getKaonsCheat(secparticles);
-		return __getKaonsCheat(secparticles); //__getKaonsCheat(secparticles);
-		//return getKaons(secparticles); //__getKaonsCheat(secparticles);
+		if (doCheating) 
+		{
+			return __getKaonsCheat(secparticles);
+		}
+		return getKaons(secparticles); 
 	}
 	int VertexChargeOperator::CountKaons(TopQuark * top1, TopQuark * top2)
 	{
@@ -87,6 +91,8 @@ namespace TTBarProcessor
 	float VertexChargeOperator::ComputeCharge(RecoJet * top)
 	{
 		float result = -2.;
+		float purity = 0.95;
+		float efficiency = 0.88;
 		//Vertex * vertex =  getTernaryVertex(top);
 		//ReconstructedParticle * kaon = getKaon(vertex);
 		vector<float> direction = MathOperator::getDirection(top->getMomentum());
@@ -112,7 +118,18 @@ namespace TTBarProcessor
 		{
 			JetCharge & topCharge = top->GetComputedCharge();
 			result = (sum < 0.0) ? top1costheta : -top1costheta;
+
 			int sign = sum / abs(sum);
+			if (!__magicBall(efficiency, kaons[0]->getMomentum()[0]) && doCheating) 
+			{
+				std::cout << "Magic cancel\n";
+				return 0.0;
+			}
+			if (!__magicBall(purity, kaons[0]->getMomentum()[1]) && doCheating) 
+			{
+				std::cout << "Magic flip\n";
+				sign = -sign;
+			}
 			topCharge.ByTVCM = new int(sign);
 			
 		}
@@ -340,4 +357,13 @@ namespace TTBarProcessor
 		return result;
 	}
 
+	bool VertexChargeOperator::__magicBall(float threshold, float seed)
+	{
+		int input = std::abs(seed) * 1000;
+		srand(input);
+		float random = (float)(rand()) / RAND_MAX;
+		std::cout << "Time: " << input << "\n";
+		std::cout << "Random: " << random << "\n";
+		return random < threshold;
+	}
 } /* TTBarProcessor */
