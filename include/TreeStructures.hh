@@ -7,6 +7,7 @@ namespace TTBarProcessor
 		public: 
 		int _nEvt ;
 		int _nGenUsed;
+		int _nBkgUsed;
 		int _nAfterBtagCuts;
 		int _nAfterKinematicCuts;
 		int _nAfterLeptonCuts;
@@ -17,6 +18,7 @@ namespace TTBarProcessor
 		void Clear()
 		{
 			_nEvt  = 0;
+			_nBkgUsed = 0;
 			_nGenUsed = 0;
 			_nAfterBtagCuts = 0;
 			_nAfterKinematicCuts = 0;
@@ -32,8 +34,14 @@ namespace TTBarProcessor
 	{
 		float _B1momentum;
 		float _B2momentum;
+		float _B1Jetmomentum;
+		float _B2Jetmomentum;
 		float _B2btag;
 		float _B1btag;
+		float _B1mass;
+		float _B2mass;
+		float _B1chargeBalance;
+		float _B2chargeBalance;
 		float _B1costheta;
 		float _B2costheta;
 		float _B1truthAngle;
@@ -49,6 +57,14 @@ namespace TTBarProcessor
 		int _B2charge;
 		float _maxPhotonEnergy;
 		float _maxPhotonCostheta;
+		float _Sphericity;
+		float _Thrust;
+		float _B1Y;
+		float _B2Y;
+		float _bbbar4JetMass;
+		float _kaonMomentum;
+		float _ZZMass1;
+		float _ZZMass2;
 
 		int _mctag;
 		int _recotag;
@@ -99,9 +115,11 @@ namespace TTBarProcessor
 		float _qCostheta2;
 		int _methodUsed;
 		int _methodRefused;
+		int _methodZero;
 		int _methodCorrect;
 		int _methodTaken[6];
 		int _methodSameCharge[6];
+		int _methodZeroCharge[6];
 		float _chiHad;
 		float _chiTopMass;
 		float _chiTopE;
@@ -140,6 +158,8 @@ namespace TTBarProcessor
 			_MCPDG = 0;
 			_B1momentum = -1.0;
 			_B2momentum = -1.0;
+			_B1mass = -1.0;
+			_B2mass = -1.0;
 			_B2btag = -1.;
 			_B1btag = -1.0;
 			_B1costheta = -2.0;
@@ -172,13 +192,17 @@ namespace TTBarProcessor
 			_chiHad = -1.0;
 			_methodUsed = 0;
 			_methodRefused = 0;
+			_methodZero = 0;
 			_methodCorrect = -1;
 			_qCostheta[0] = -2.0;
 			_qCostheta[1] = -2.0;
+			_ZZMass1 = -1;
+			_ZZMass2 = -1;
 			for (unsigned int i = 0; i < 6; i++) 
 			{
 				_methodTaken[i] = -1;
 				_methodSameCharge[i] = -1;
+				_methodZeroCharge[i] = -1;
 			}
 		}
 	};

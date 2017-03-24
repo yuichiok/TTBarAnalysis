@@ -123,7 +123,34 @@ namespace TTBarProcessor
 		result->setPDG(pdg);
 		return result;
 	}
+	vector <MCParticle *> QQBarMCOperator::GetFinalStateBkg()
+	{
+		vector <MCParticle *> result;
+		/*for (unsigned int i = 0; i < 4; i++) 
+		{
+			MCParticle * particle = dynamic_cast<MCParticle*>( myCollection->getElementAt(i+2) );
+			result.push_back(particle);
+		}*/
+		result.push_back(dynamic_cast<MCParticle*>( myCollection->getElementAt( 2)));
+		result.push_back(dynamic_cast<MCParticle*>( myCollection->getElementAt( 3)));
 
+		MCParticle * higgs = FindParticle(25);
+		if (higgs->getDaughters().size() == 2) 
+		{
+			result.push_back(higgs->getDaughters()[0]);
+			result.push_back(higgs->getDaughters()[1]);
+		}
+		if (higgs->getDaughters().size() == 1) 
+		{
+			if (higgs->getDaughters()[0]->getDaughters().size() == 2) 
+			{
+				result.push_back(higgs->getDaughters()[0]->getDaughters()[0]);
+				result.push_back(higgs->getDaughters()[0]->getDaughters()[1]);
+
+			}
+		}
+		return result;
+	}
 	vector <MCParticle *> QQBarMCOperator::GetFinalState()
 	{
 		vector <MCParticle *> result;

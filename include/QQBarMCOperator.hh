@@ -32,6 +32,7 @@ namespace TTBarProcessor
 			std::vector< EVENT::MCParticle * > GetPairParticles(int pdg);
 			std::vector< EVENT::MCParticle * > GetTopPairParticles(float & topBangle, float & topBarBangle);
 			std::vector< EVENT::MCParticle * > GetFinalState();
+			std::vector< EVENT::MCParticle * > GetFinalStateBkg();
 			EVENT::MCParticle * CombineParticles(EVENT::MCParticle * b, EVENT::MCParticle * w);
 			EVENT::MCParticle * FindParticle(int pdg);
 			std::vector< EVENT::MCParticle * > GetBquarkPair();

@@ -75,8 +75,19 @@ namespace TTBarProcessor
 	}
 	float RecoJet::GetCostheta()
 	{
-		vector<float> d1 = MathOperator::getDirection(getMomentum());
-		float costheta1 =  std::abs(std::cos( MathOperator::getAngles(d1)[1] ));
+		float costheta1 =  -2.0;
+		vector<float> d1;
+		/*if (myRecoVertices && myRecoVertices->size() > 0) 
+		{
+			double * pos = MathOperator::toDoubleArray(myRecoVertices->at(0)->getPosition(),3);
+			d1 = MathOperator::getDirection(pos);
+			delete pos;
+		}
+		else*/ 
+		{
+			d1 = MathOperator::getDirection(getMomentum());
+		}
+		costheta1 =  std::cos( MathOperator::getAngles(d1)[1] );
 		return costheta1;
 	}
 	float RecoJet::GetHadronCharge(bool weight)
@@ -123,7 +134,7 @@ namespace TTBarProcessor
 		float mindistance = 1000.;
 		if (myRecoVertices && myRecoVertices->size() > 0) 
 		{
-			for (int i = 0; i < myRecoVertices->size(); i++) 
+			for (unsigned int i = 0; i < myRecoVertices->size(); i++) 
 			{
 				float distance = MathOperator::getModule(myRecoVertices->at(i)->getPosition()); // CRUNCH!!!
 				if (distance < mindistance) 
@@ -139,7 +150,7 @@ namespace TTBarProcessor
 		float maxdistance = 0.;
 		if (myRecoVertices && myRecoVertices->size() > 0) 
 		{
-			for (int i = 0; i < myRecoVertices->size(); i++) 
+			for ( unsigned int i = 0; i < myRecoVertices->size(); i++) 
 			{
 				float distance = MathOperator::getModule(myRecoVertices->at(i)->getPosition()); // CRUNCH!!!
 				if (distance > maxdistance) 
@@ -172,7 +183,7 @@ namespace TTBarProcessor
 		if (myRecoVertices) 
 		{
 			 mass = 0.0;
-			 for (int i = 0; i < myRecoVertices->size(); i++) 
+			 for ( unsigned int i = 0; i < myRecoVertices->size(); i++) 
 			 {
 			 	mass += myRecoVertices->at(i)->getAssociatedParticle()->getMass();
 			 }

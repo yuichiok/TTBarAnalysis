@@ -9,6 +9,7 @@ namespace TTBarProcessor
 	{	
 		_hSumTree->Branch("nEvents", &data._nEvt, "nEvents/I");
 		_hSumTree->Branch("nGenUsed", &data._nGenUsed, "nGenUsed/I");
+		_hSumTree->Branch("nBkgUsed", &data._nBkgUsed, "nBkgUsed/I");
 		_hSumTree->Branch("nAfterGenMassCuts", &data._nAfterGenMassCuts, "nAfterGenMassCuts/I");
 		_hSumTree->Branch("nAfterLeptonCuts", &data._nAfterLeptonCuts, "nAfterLeptonCuts/I");
 		_hSumTree->Branch("nAfterBtagCuts", &data._nAfterBtagCuts, "nAfterBtagCuts/I");
@@ -26,8 +27,14 @@ namespace TTBarProcessor
 		//_hTree->Branch("MCPt", &data._MCPt, "MCPt/F");
 		_hTree->Branch("B1momentum", &data._B1momentum, "B1momentum/F");
 		_hTree->Branch("B2momentum", &data._B2momentum, "B2momentum/F");
+		_hTree->Branch("B1Jetmomentum", &data._B1Jetmomentum, "B1Jetmomentum/F");
+		_hTree->Branch("B2Jetmomentum", &data._B2Jetmomentum, "B2Jetmomentum/F");
+		_hTree->Branch("B1mass", &data._B1mass, "B1mass/F");
+		_hTree->Branch("B2mass", &data._B2mass, "B2mass/F");
 		_hTree->Branch("B1btag", &data._B1btag, "B1btag/F");
 		_hTree->Branch("B2btag", &data._B2btag, "B2btag/F");
+		_hTree->Branch("B1chargeBalance", &data._B1chargeBalance, "B1chargeBalance/F");
+		_hTree->Branch("B2chargeBalance", &data._B2chargeBalance, "B2chargeBalance/F");
 		_hTree->Branch("B1charge", &data._B1charge, "B1charge/I");
 		_hTree->Branch("B2charge", &data._B2charge, "B2charge/I");
 		_hTree->Branch("B1VtxTag", &data._B1VtxTag, "B1VtxTag/I");
@@ -40,16 +47,26 @@ namespace TTBarProcessor
 		_hTree->Branch("bbbarAngle", &data._bbbarAngle, "bbbarAngle/F");
 		_hTree->Branch("bbbarPt", &data._bbbarPt, "bbbarPt/F");
 		_hTree->Branch("bbbarP", &data._bbbarP, "bbbarP/F");
+		_hTree->Branch("bbbar4JetMass", &data._bbbar4JetMass, "bbbar4JetMass/F");
 		_hTree->Branch("InvMass", &data._InvMass, "InvMass/F");
+		_hTree->Branch("Sphericity", &data._Sphericity, "Sphericity/F");
+		_hTree->Branch("Thrust", &data._Thrust, "Thrust/F");
+		_hTree->Branch("B1Y", &data._B1Y, "B1Y/F");
+		_hTree->Branch("B2Y", &data._B2Y, "B2Y/F");
+		_hTree->Branch("ZZMass1", &data._ZZMass1, "ZZMass1/F");
+		_hTree->Branch("ZZMass2", &data._ZZMass2, "ZZMass2/F");
 		_hTree->Branch("maxPhotonEnergy", &data._maxPhotonEnergy, "maxPhotonEnergy/F");
+		_hTree->Branch("kaonMomentum", &data._kaonMomentum, "kaonMomentum/F");
 		_hTree->Branch("maxPhotonCostheta", &data._maxPhotonCostheta, "maxPhotonCostheta/F");
 		_hTree->Branch("qCostheta", data._qCostheta, "qCostheta[2]/F");
 		_hTree->Branch("qCostheta1", &data._qCostheta1, "qCostheta1/F");
 		_hTree->Branch("qCostheta2", &data._qCostheta2, "qCostheta2/F");
 		_hTree->Branch("methodUsed", &data._methodUsed, "methodUsed/I");
 		_hTree->Branch("methodRefused", &data._methodRefused, "methodRefused/I");
+		_hTree->Branch("methodZero", &data._methodZero, "methodZero/I");
 		_hTree->Branch("methodCorrect", &data._methodCorrect, "methodCorrect/I");
 		_hTree->Branch("methodSameCharge", data._methodSameCharge, "methodSameCharge[methodRefused]/I");
+		_hTree->Branch("methodZeroCharge", data._methodZeroCharge, "methodZeroCharge[methodZero]/I");
 		_hTree->Branch("methodTaken", data._methodTaken, "methodTaken[methodUsed]/I");
 		
 	}

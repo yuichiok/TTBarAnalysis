@@ -225,6 +225,16 @@ namespace TTBarProcessor
 		}
 		return vector1;
 	}
+	vector< float > MathOperator::getDirection(const vector<float> & vectorPoint)
+	{
+		vector< float > vector1;
+		float module = getModule(vectorPoint);
+		for (int i = 0; i < 3; i++)
+		{
+			vector1.push_back( vectorPoint[i]/module);
+		}
+		return vector1;
+	}
 	
 	vector< float > MathOperator::getDirection(const double * vectorPoint1, const double * vectorPoint2)
 	{

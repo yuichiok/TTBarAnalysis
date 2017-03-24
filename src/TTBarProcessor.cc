@@ -130,6 +130,11 @@ namespace TTBarProcessor
 				writer.InitializeStatsTree(_hTree, _stats);
 				break;
 		}
+		/*_hBkgTree = new TTree( "BkgTree", "tree" );
+		_hBkgTree->Branch("f1PDG", &_bkgPDGs[0], "f1PDG/I");
+		_hBkgTree->Branch("f2PDG", &_bkgPDGs[1], "f2PDG/I");
+		_hBkgTree->Branch("f3PDG", &_bkgPDGs[2], "f3PDG/I");
+		_hBkgTree->Branch("f4PDG", &_bkgPDGs[3], "f4PDG/I");*/
 		//AnalyseTTBarSemiLeptonic(evt);
 
 		
@@ -172,7 +177,7 @@ namespace TTBarProcessor
 				int charge = genfinalstate[i]->getCharge() / std::abs(genfinalstate[i]->getCharge());
 				_stats._qMCcostheta[i] = - std::cos( MathOperator::getAngles(direction)[1]) * charge;
 			}
-			if (Z->getMass() > _massCutparameter) 
+			if (Z->getMass() > _massCutparameter && _stats._MCPDG == 5) 
 			{
 				_summary._nAfterGenMassCuts++;
 			}
@@ -182,7 +187,14 @@ namespace TTBarProcessor
 				_summary._nGenUsed++;
 			}
 			_hGenTree->Fill();
+			delete Z;
 		}
+		/*vector <MCParticle *> bkgfinalstate = opera.GetFinalStateBkg();
+		for (unsigned int i = 0; i < bkgfinalstate.size(); i++) 
+		{
+			_bkgPDGs[i] = bkgfinalstate[i]->getPDG();
+		}
+		_hBkgTree->Fill();*/
 		return genfinalstate;
 		
 	}
@@ -262,6 +274,16 @@ namespace TTBarProcessor
 
 	void TTBarProcessor::AnalyseTTBarSemiLeptonic( LCEvent * evt )
 	{
+		LCCollection * mcvtxcol = NULL;
+		try
+		{
+			 mcvtxcol = evt->getCollection(_MCVtxColName);
+		}
+		catch(DataNotAvailableException &e)
+		{
+			std::cout << e.what() <<"\n";
+		}
+		
 		try
 		{
 			std::cout << "***************Analysis*" <<_summary._nEvt++<<"*****************\n";
@@ -270,7 +292,7 @@ namespace TTBarProcessor
 			LCCollection * jetcol = evt->getCollection(_JetsColName);
 			LCCollection * jetrelcol = evt->getCollection(_JetsRelColName);
 			LCCollection * mccol = evt->getCollection(_MCColName);
-			LCCollection * mcvtxcol = evt->getCollection(_MCVtxColName);
+			//LCCollection * mcvtxcol = evt->getCollection(_MCVtxColName);
 			QQBarMCOperator opera(mccol);
 			VertexChargeOperator vtxOperator(evt->getCollection(_colName),evt->getCollection(_colRelName));
 			vector < MCParticle * > mctops = AnalyseGenerator(opera);
@@ -670,8 +692,8 @@ namespace TTBarProcessor
 
 		vector<float> direction = MathOperator::getDirection(top1->getMomentum());
 		float costheta =  std::cos( MathOperator::getAngles(direction)[1] );
-		float m = top1->getMass();
-		float e = top1->getEnergy();
+		//float m = top1->getMass();
+		//float e = top1->getEnergy();
 		float btagcut = 0.8;
 		float pcut = 20.;
 		vector<int> samecharge;
@@ -1022,10 +1044,10 @@ namespace TTBarProcessor
 				TopQuark * candidate2 = new TopQuark(wjets->at(ncandidates[0]), wjets->at(ncandidates[1]));
 				float mass2 = candidate2->getMass();
 				std::cout << "W candidate masses: " << mass1 << " " << mass2 << "\n";
-				float ctag1 = wjets->at(i)->GetCTag();
-				float ctag2 = wjets->at(j)->GetCTag();
-				float ctag3 = wjets->at(ncandidates[0])->GetCTag();
-				float ctag4 = wjets->at(ncandidates[1])->GetCTag();
+				//float ctag1 = wjets->at(i)->GetCTag();
+				//float ctag2 = wjets->at(j)->GetCTag();
+				//float ctag3 = wjets->at(ncandidates[0])->GetCTag();
+				//float ctag4 = wjets->at(ncandidates[1])->GetCTag();
 				std::cout << "W candidate c-tags: " << wjets->at(i)->GetCTag() << " " << wjets->at(j)->GetCTag() << "\n";
 				if (std::abs(mass1 + mass2 - 2*_WMassparameter) < bestdifference)// && 
 						//(!(ctag1 > _lowBTagCutparameter &&  ctag2 > _lowBTagCutparameter) &&
@@ -1050,23 +1072,31 @@ namespace TTBarProcessor
 	}
 	void TTBarProcessor::AnalyseBBBar(LCEvent * evt)
 	{
+		LCCollection * mcvtxcol = NULL;
+		try
+		{
+			mcvtxcol = evt->getCollection(_MCVtxColName);
+		}
+		catch(DataNotAvailableException &e)
+		{
+			std::cout << e.what() <<"\n";
+		}
 		try
 		{
 			std::cout << "***************Analysis*" <<_summary._nEvt++<<"*****************\n";
 			LCCollection * jetcol = evt->getCollection(_JetsColName);
 			LCCollection * jetrelcol = evt->getCollection(_JetsRelColName);
 			LCCollection * mccol = evt->getCollection(_MCColName);
-			LCCollection * mcvtxcol = evt->getCollection(_MCVtxColName);
+			//LCCollection * mcvtxcol = evt->getCollection(_MCVtxColName);
+			LCCollection * pfocol = evt->getCollection(_colName);
 			QQBarMCOperator opera(mccol);
 			vector < MCParticle * > mcbs = AnalyseGeneratorBBBar(opera);
 			VertexChargeOperator vtxOperator(evt->getCollection(_colName),evt->getCollection(_colRelName));
 			vector< RecoJet * > * jets = getJets(jetcol, jetrelcol);
-			std::sort(jets->begin(), jets->end(), sortByBtag);
-			if (mcbs.size() == 2 && _stats._MCMass > _massCutparameter) //CRUNCH
-			{
-				_summary._nAfterMassCuts++;
-			}
-			if (jets->size() < 2 || mcbs.size() != 2 || jets->at(0)->GetBTag() < _highBTagCutparameter) 
+			//std::sort(jets->begin(), jets->end(), sortByBtag);
+			if (jets->size() < 2 || (jets->at(0)->GetBTag() < _highBTagCutparameter || jets->at(1)->GetBTag() < _lowBTagCutparameter)) 
+			//if (jets->size() < 2 ||  jets->at(0)->GetBTag() < _highBTagCutparameter ||  jets->at(1)->GetBTag() < _highBTagCutparameter) 
+			//if (jets->size() < 2) 
 			{
 				return;
 			}
@@ -1078,16 +1108,30 @@ namespace TTBarProcessor
 			std::cout << "--EVENT ACCEPTED--\n";
 			_stats._B1momentum = jets->at(0)->GetHadronMomentum(); //MathOperator::getModule(jets->at(0)->getMomentum());
 			_stats._B2momentum = jets->at(1)->GetHadronMomentum();//MathOperator::getModule(jets->at(1)->getMomentum());
+			_stats._B1Jetmomentum = MathOperator::getModule(jets->at(0)->getMomentum());
+			_stats._B2Jetmomentum = MathOperator::getModule(jets->at(1)->getMomentum());
 			_stats._B1btag = jets->at(0)->GetBTag();
 			_stats._B2btag = jets->at(1)->GetBTag();
+			_stats._B1mass = jets->at(0)->getMass();
+			_stats._B2mass = jets->at(1)->getMass();
 			_stats._B1charge =  jets->at(0)->GetHadronCharge();
 			_stats._B2charge =  jets->at(1)->GetHadronCharge();
 			_stats._bbbarAngle = MathOperator::getAngleBtw(jets->at(0)->getMomentum(), jets->at(1)->getMomentum());
 			RecoJet * Zboson = new TopQuark(jets->at(0), jets->at(1));
 			_stats._InvMass = Zboson->getMass();
+			findPhoton(pfocol);
+			if (_stats._InvMass > _massCutparameter-20 && _stats._maxPhotonEnergy < 40 && _stats._MCPDG == 5) //CRUNCH
+			{
+				_summary._nAfterMassCuts++;
+			}
 			vector< const double * > momentums;// = {jets->at(0)->getMomentum(), jets->at(1)->getMomentum()};
 			momentums.push_back(jets->at(0)->getMomentum());
 			momentums.push_back(jets->at(1)->getMomentum());
+			vector< ReconstructedParticle * > kaons1 = vtxOperator.GetKaons(jets->at(0));
+			if (kaons1.size() > 0) 
+			{
+				_stats._kaonMomentum = MathOperator::getModule(kaons1[0]->getMomentum());
+			}
 			 _stats._bbbarPt = 0.0;
 			 _stats._bbbarP = 0.0;
 			for (unsigned int i = 0; i < 3; i++) 
@@ -1100,7 +1144,22 @@ namespace TTBarProcessor
 			std::cout << "Missing pt: " << _stats._bbbarPt << "\n";
 			MatchB(jets, mcbs, mcvtxcol);
 			ComputeCharge(jets, vtxOperator);
-			findPhoton(evt->getCollection(_colName));
+			ClusteringOperator cloperator;
+			if (jets->at(0)->GetRecoVertices() && jets->at(0)->GetRecoVertices()->size() > 0) 
+			{
+				_stats._B1Y = MathOperator::getAngleBtw(jets->at(0)->getMomentum(), jets->at(0)->GetRecoVertices()->at(0)->getAssociatedParticle()->getMomentum()); //cloperator.ClusterizeJet(jets->at(0));
+			}
+			//_stats._B2Y = cloperator.ClusterizeJet(jets->at(1));
+			_stats._B1chargeBalance = getChargeBalance(jets->at(0));
+			_stats._B2chargeBalance = getChargeBalance(jets->at(1));
+			_stats._Sphericity = pfocol->getParameters().getFloatVal("sphericity");
+			_stats._Thrust = pfocol->getParameters().getFloatVal("majorThrustValue");
+			//getZZ(evt->getCollection("FourJets"));
+			//_stats._bbbar4JetMass = pfocol->getNumberOfElements();
+			vector<float> axis;
+			//pfocol->getParameters().getFloatVals("principleThrustAxis", axis);
+			pfocol->getParameters().getFloatVals("majorThrustAxis", axis);
+			//getThrust(axis, pfocol);
 			_hTree->Fill();
 			ClearVariables();
 			delete Zboson;
@@ -1135,14 +1194,16 @@ namespace TTBarProcessor
 */	
 		vector<float> bdirection1 = MathOperator::getDirection(jets->at(0)->getMomentum());
 		vector<float> bdirection2 = MathOperator::getDirection(jets->at(1)->getMomentum());
-		_stats._B1costheta =( std::cos( MathOperator::getAngles(bdirection1)[1] ));
-		_stats._B2costheta =( std::cos( MathOperator::getAngles(bdirection2)[1] ));
+		_stats._B1costheta = jets->at(0)->GetCostheta();//( std::cos( MathOperator::getAngles(bdirection1)[1] ));
+		_stats._B2costheta = jets->at(1)->GetCostheta();//( std::cos( MathOperator::getAngles(bdirection2)[1] ));
+		//_stats._B1costheta = ( std::cos( MathOperator::getAngles(bdirection1)[1] ));
+		//_stats._B2costheta = ( std::cos( MathOperator::getAngles(bdirection2)[1] ));
 		for (unsigned int i = 0; i < jets->size(); i++) 
 		{
 			if (jets->at(i)->GetNumberOfVertexParticles() > 2)// && abs(jets->at(i)->GetHadronCharge()) > 0 ) 
 			{
 				JetCharge & bCharge = jets->at(i)->GetComputedCharge();
-				int chargeValue = jets->at(i)->GetHadronCharge();
+				int chargeValue = (jets->at(i)->GetHadronCharge() > -5)? jets->at(i)->GetHadronCharge() : 0;
 				bCharge.ByTrackCount = (chargeValue == 0)? new int(0): new int((float)chargeValue / abs(chargeValue));
 				
 			}
@@ -1152,15 +1213,9 @@ namespace TTBarProcessor
 			}
 			vector<float> bdirection = MathOperator::getDirection(jets->at(i)->getMomentum());
 			float costheta =  std::cos( MathOperator::getAngles(bdirection)[1] );
-			//if ( jets->at(i)->GetHadronMomentum() > 0) 
-			//{
-				//_stats._qCostheta[i] = costheta * jets->at(i)->__GetMCCharge() / std::abs(jets->at(i)->__GetMCCharge()) * -1; 
-			//}
 		}
 		float btagcut = .80;
 		float pcut = 20.;
-		//if (e/m > _GammaTparameter -0.1 && top2->GetComputedCharge().ByLepton) 
-		//Track charge * Track charge
 		RecoJet * top1 = jets->at(0);
 		RecoJet * top2 = jets->at(1);
 		std::cout << "Jet \t VTX \t KAON\n";
@@ -1170,24 +1225,26 @@ namespace TTBarProcessor
 		std::cout << "B2:\t" << intToStr(top2->GetComputedCharge().ByTrackCount) <<"\t"
 					<< intToStr(top2->GetComputedCharge().ByTVCM) <<"\n";
 					//<< intToStr(top2->GetComputedCharge().ByLepton) <<"\n";
-		if ((top1->GetComputedCharge().ByTVCM || top2->GetComputedCharge().ByTVCM) && _stats._MCMass > _massCutparameter) 
+		if ((top1->GetComputedCharge().ByTVCM || top2->GetComputedCharge().ByTVCM) && _stats._MCMass > _massCutparameter && _stats._MCPDG ==5) 
 		{
 			_summary._nKaons++;
 		}
-		if ((top1->GetComputedCharge().ByTrackCount || top2->GetComputedCharge().ByTrackCount) && _stats._MCMass > _massCutparameter) 
+		if ((top1->GetComputedCharge().ByTrackCount || top2->GetComputedCharge().ByTrackCount) && _stats._MCMass > _massCutparameter && _stats._MCPDG == 5) 
 		{
 			_summary._nChargedB++;
 		}
 		_stats._qCostheta[0] = -2.;
 		_stats._qCostheta[1] = -2.;
-		_stats._B1VtxTag = (top1->GetComputedCharge().ByTrackCount)? *(top1->GetComputedCharge().ByTrackCount) : 0;
-		_stats._B2VtxTag = (top2->GetComputedCharge().ByTrackCount)? *(top2->GetComputedCharge().ByTrackCount) : 0;
-		_stats._B1KaonTag = (top1->GetComputedCharge().ByTVCM)? *(top1->GetComputedCharge().ByTVCM) : 0;
-		_stats._B2KaonTag = (top2->GetComputedCharge().ByTVCM)? *(top2->GetComputedCharge().ByTVCM) : 0;
+		_stats._B1VtxTag = (top1->GetComputedCharge().ByTrackCount)? *(top1->GetComputedCharge().ByTrackCount) : -5;
+		_stats._B2VtxTag = (top2->GetComputedCharge().ByTrackCount)? *(top2->GetComputedCharge().ByTrackCount) : -5;
+		_stats._B1KaonTag = (top1->GetComputedCharge().ByTVCM)? *(top1->GetComputedCharge().ByTVCM) : -5;
+		_stats._B2KaonTag = (top2->GetComputedCharge().ByTVCM)? *(top2->GetComputedCharge().ByTVCM) : -5;
 		vector<int> samecharge;
 		vector<int> goodcharge;
+		vector<int> zerocharge;
 		vector<int> chargevalue;
 		///BBB
+		//Track charge * Track charge
 		if (top2->GetComputedCharge().ByTrackCount && top1->GetComputedCharge().ByTrackCount) 
 		{
 			int top1charge = *(top1->GetComputedCharge().ByTrackCount );
@@ -1208,6 +1265,10 @@ namespace TTBarProcessor
 				//_summary._nAfterKinematicCuts++;
 				//return;
 			}
+			if ( _stats._B2btag > btagcut && _stats._B2momentum > pcut && (top1charge == 0 || top2charge == 0)) 
+			{
+				zerocharge.push_back(1);
+			}
 			if (top1charge * top2charge > 0 && _stats._B2btag > btagcut && _stats._B2momentum > pcut) 
 			{
 				samecharge.push_back(1);
@@ -1219,6 +1280,7 @@ namespace TTBarProcessor
 		{
 			int top1charge = *(top1->GetComputedCharge().ByTVCM );
 			int top2charge = *(top2->GetComputedCharge().ByTVCM );
+			bool zero = false;
 			if (top1charge * top2charge < 0)//  && _stats._methodUsed < 1) 
 			{
 				//_stats._qCostheta[0] = (top1charge < 0)? _stats._B1costheta: - _stats._B1costheta;
@@ -1235,17 +1297,26 @@ namespace TTBarProcessor
 				//_summary._nAfterKinematicCuts++;
 				//return;
 			}
+			if (top1->GetComputedCharge().ByTrackCount && *(top1->GetComputedCharge().ByTrackCount ) == 0) 
+			{
+				zerocharge.push_back(2);
+				zero = true;
+			}
+			if (top2->GetComputedCharge().ByTrackCount && *(top2->GetComputedCharge().ByTrackCount ) == 0 && !zero) 
+			{
+				zerocharge.push_back(2);
+			}
 			if (top1charge * top2charge > 0) 
 			{
 				samecharge.push_back(2);
 			}
 		}////
 		//Track charge + Kaon
-		if (top1->GetComputedCharge().ByTrackCount && top1->GetComputedCharge().ByTVCM) 
+		/*if (top1->GetComputedCharge().ByTrackCount && top1->GetComputedCharge().ByTVCM) 
 		{
 			int top1charge = *(top1->GetComputedCharge().ByTrackCount );
 			int top1kaon = *(top1->GetComputedCharge().ByTVCM );
-			if (top1charge * top1kaon > 0 && _stats._B1btag > btagcut && _stats._B1momentum > pcut)//   && _stats._methodUsed < 1) 
+			if (top1charge * top1kaon > 0 && _stats._B1btag > btagcut && _stats._B1momentum > pcut) 
 			{
 				//_stats._qCostheta[0] = (top1charge < 0)? _stats._B1costheta: -_stats._B1costheta; 
 				//_stats._qCostheta[1] = (top1charge > 0)? _stats._B2costheta: - _stats._B2costheta;
@@ -1262,6 +1333,10 @@ namespace TTBarProcessor
 				//_summary._nAfterKinematicCuts++;
 				//return;
 			}
+			if ( _stats._B1btag > btagcut && _stats._B1momentum > pcut && (top1charge == 0)) 
+			{
+				zerocharge.push_back(3);
+			}
 			if (top1charge * top1kaon < 0 &&_stats._B1btag > btagcut && _stats._B1momentum > pcut) 
 			{
 				samecharge.push_back(3);
@@ -1272,7 +1347,7 @@ namespace TTBarProcessor
 		{
 			int top2charge = *(top2->GetComputedCharge().ByTrackCount );
 			int top2kaon = *(top2->GetComputedCharge().ByTVCM );
-			if (top2charge * top2kaon > 0 && _stats._B2btag > btagcut && _stats._B2momentum > pcut)//  && _stats._methodUsed < 1) 
+			if (top2charge * top2kaon > 0 && _stats._B2btag > btagcut && _stats._B2momentum > pcut ) 
 			{
 				//_stats._qCostheta[0] = (top2charge > 0)? _stats._B1costheta: - _stats._B1costheta; 
 				//_stats._qCostheta[1] = (top2charge < 0)? _stats._B2costheta: - _stats._B2costheta;
@@ -1289,16 +1364,20 @@ namespace TTBarProcessor
 				//_summary._nAfterKinematicCuts++;
 				//return;
 			}
+			if ( _stats._B2btag > btagcut && _stats._B2momentum > pcut && (top2charge == 0)) 
+			{
+				zerocharge.push_back(4);
+			}
 			if (top2charge * top2kaon < 0 && _stats._B2btag > btagcut && _stats._B2momentum > pcut) 
 			{
 				samecharge.push_back(4);
 			}
-		}
+		}//
 		if (top2->GetComputedCharge().ByTrackCount && top1->GetComputedCharge().ByTVCM) 
 		{
 			int top2charge = *(top2->GetComputedCharge().ByTrackCount );
 			int top1kaon = *(top1->GetComputedCharge().ByTVCM );
-			if (top2charge * top1kaon < 0 &&  _stats._B2btag > btagcut && _stats._B2momentum > pcut)//   && _stats._methodUsed < 1) 
+			if (top2charge * top1kaon < 0 &&  _stats._B2btag > btagcut && _stats._B2momentum > pcut) 
 			{
 				//_stats._qCostheta[0] = (top2charge > 0)? _stats._B1costheta: - _stats._B1costheta; 
 				//_stats._qCostheta[1] = (top2charge < 0)? _stats._B2costheta: - _stats._B2costheta;
@@ -1306,13 +1385,17 @@ namespace TTBarProcessor
 				//_stats._methodUsed = 6;
 				chargevalue.push_back(-top2charge);
 				goodcharge.push_back(6);
+				_stats._methodCorrect = top1->__GetMCCharge() * top1kaon > 0;
 				if (!_stats._methodCorrect) 
 				{
 					 std::cout << "Not Correct!\n";
 				}
-				_stats._methodCorrect = top1->__GetMCCharge() * top1kaon > 0;
 				//_summary._nAfterKinematicCuts++;
 				//return;
+			}
+			if ( _stats._B2btag > btagcut && _stats._B2momentum > pcut && top1->GetComputedCharge().ByTrackCount && *(top1->GetComputedCharge().ByTrackCount ) == 0) 
+			{
+				zerocharge.push_back(6);
 			}
 			if (top2charge * top1kaon > 0 &&  _stats._B2btag > btagcut && _stats._B2momentum > pcut)
 			{
@@ -1323,7 +1406,7 @@ namespace TTBarProcessor
 		{
 			int top1charge = *(top1->GetComputedCharge().ByTrackCount );
 			int top2kaon = *(top2->GetComputedCharge().ByTVCM );
-			if (top1charge * top2kaon < 0 &&  _stats._B1btag > btagcut && _stats._B1momentum > pcut)//   && _stats._methodUsed < 1) 
+			if (top1charge * top2kaon < 0 &&  _stats._B1btag > btagcut && _stats._B1momentum > pcut) 
 			{
 				//_stats._qCostheta[0] = (top1charge < 0)? _stats._B1costheta: - _stats._B1costheta; 
 				//_stats._qCostheta[1] = (top1charge > 0)? _stats._B2costheta: - _stats._B2costheta;
@@ -1339,6 +1422,10 @@ namespace TTBarProcessor
 				//_summary._nAfterKinematicCuts++;
 				//return;
 			}
+			if ( _stats._B1btag > btagcut && _stats._B1momentum > pcut && top2->GetComputedCharge().ByTrackCount &&  *(top2->GetComputedCharge().ByTrackCount ) == 0) 
+			{
+				zerocharge.push_back(5);
+			}
 			if (top1charge * top2kaon > 0 &&_stats._B1btag > btagcut && _stats._B1momentum > pcut) 
 			{
 				samecharge.push_back(5);
@@ -1347,6 +1434,7 @@ namespace TTBarProcessor
 		}//*/
 		_stats._methodRefused = samecharge.size();
 		_stats._methodUsed = goodcharge.size();
+		_stats._methodZero = zerocharge.size();
 		if (samecharge.size() > 0) 
 		{
 			std::cout << "REFUSED BY CHARGE: ";
@@ -1354,6 +1442,16 @@ namespace TTBarProcessor
 			{
 				std::cout << " " << samecharge[i];
 				_stats._methodSameCharge[i] = samecharge[i];
+			}
+			std::cout << "\n";
+		}
+		if (zerocharge.size() > 0) 
+		{
+			std::cout << "ZERO CHARGE: ";
+			for (unsigned int i = 0; i < zerocharge.size(); i++) 
+			{
+				std::cout << " " << zerocharge[i];
+				_stats._methodZeroCharge[i] = zerocharge[i];
 			}
 			std::cout << "\n";
 		}
@@ -1382,10 +1480,11 @@ namespace TTBarProcessor
 				std::cout << "CONTRADICTING RESULT\n";
 				_stats._qCostheta[0] = -2.;
 				_stats._qCostheta[1] = -2.;
+				_stats._methodUsed = 0;
 			}
 			else 
 			{
-				if ( _stats._MCMass > _massCutparameter) 
+				if ( _stats._MCMass > _massCutparameter && _stats._MCPDG == 5) 
 				{
 					_summary._nAfterKinematicCuts++;
 				}
@@ -1567,6 +1666,7 @@ namespace TTBarProcessor
 			  << " m: " << jet->getMass()
 			  << " btag: " << jet->GetBTag()
 			  << " costheta: " << jet->GetCostheta()
+			  << " p_B: " << jet->GetHadronMomentum()
 			  << " ntracks: " << jet->GetNumberOfVertexParticles()
 			  << "\n";
 	}
@@ -1692,7 +1792,7 @@ namespace TTBarProcessor
 			_stats._MCBBarOscillation = mcvtxcol->getParameters().getIntVal("BBarOscillation");
 			_stats._MCBOscillation = mcvtxcol->getParameters().getIntVal("BOscillation");
 		}
-		/*for (unsigned int i = 0; i < mcbs.size(); i++) 
+		for (unsigned int i = 0; i < mcbs.size(); i++) 
 		{
 			MCParticle * mcb = mcbs[i];
 			float angleCurrent =  MathOperator::getAngle(mcb->getMomentum(), bjets->at(0)->getMomentum());
@@ -1706,13 +1806,13 @@ namespace TTBarProcessor
 		std::cout << "Truth Angle: " << angle << " charge: " << charge << "\n";
 		_stats._B1truthAngle = angle;
 		bjets->at(1)->__SetMCCharge(-charge);
-		*/
-		float angle00 = MathOperator::getAngle(mcbs[0]->getMomentum(), bjets->at(0)->getMomentum());
+		//*/
+		/*float angle00 = MathOperator::getAngle(mcbs[0]->getMomentum(), bjets->at(0)->getMomentum());
 		float angle11 = MathOperator::getAngle(mcbs[1]->getMomentum(), bjets->at(1)->getMomentum());
-		float energy0 = mcbs[0]->getEnergy() - bjets->at(0)->getEnergy() + mcbs[1]->getEnergy() -  bjets->at(1)->getEnergy();
+		//float energy0 = mcbs[0]->getEnergy() - bjets->at(0)->getEnergy() + mcbs[1]->getEnergy() -  bjets->at(1)->getEnergy();
 		float angle01 = MathOperator::getAngle(mcbs[0]->getMomentum(), bjets->at(1)->getMomentum());
 		float angle10 = MathOperator::getAngle(mcbs[1]->getMomentum(), bjets->at(0)->getMomentum());
-		float energy1 = mcbs[1]->getEnergy() - bjets->at(0)->getEnergy() + mcbs[0]->getEnergy() -  bjets->at(1)->getEnergy();
+		//float energy1 = mcbs[1]->getEnergy() - bjets->at(0)->getEnergy() + mcbs[0]->getEnergy() -  bjets->at(1)->getEnergy();
 		std::cout << "Angle btw quarks: " << _stats._bbbarAngle << " a1+a2: " << angle00+angle11 << " b1+b2: " << angle01+angle10 <<"\n"; 
 		if (angle00 + angle11 < angle01 + angle10) 
 		{
@@ -1726,7 +1826,7 @@ namespace TTBarProcessor
 			bjets->at(1)->__SetMCCharge(mcbs[0]->getCharge());
 			bjets->at(0)->__SetMCCharge(mcbs[1]->getCharge());
 			
-		}
+		}*/
 		if ( bjets->at(0)->__GetMCCharge() < 0) 
 		{
 			bjets->at(0)->__SetMCNtracks(bgenntracks);
@@ -1852,6 +1952,183 @@ namespace TTBarProcessor
 		result.push_back(kcandidate);
 		result.push_back(lcandidate);
 		return result;
+	}
+
+	float TTBarProcessor::getChargeBalance(RecoJet * jet)
+	{
+		int nparticles = jet->getParticles().size();
+		float e_c = 0.0;
+		float e = 0.0;
+		for (unsigned int i = 0; i < nparticles; i++) 
+		{
+			ReconstructedParticle * particle = jet->getParticles()[i];
+			if (std::abs(particle->getCharge()) > 0.0) 
+			{
+				e_c += particle->getEnergy();
+			}
+			e += particle->getEnergy();
+		}
+		return e_c / e;
+	}
+	void TTBarProcessor::getThrust(vector<float> & thrust, LCCollection * pfos)
+	{
+		std::cout << "Size: " << thrust.size() << "\n";
+		double taxis[3];
+		taxis[0] = thrust[0]; taxis[1] = thrust[1]; taxis[2] = thrust[2];
+		vector<float> direction = MathOperator::getDirection(thrust);
+		float axisAngle = MathOperator::getAngles(direction)[1];
+		std::cout << "THRUST COS0: " << std::cos(axisAngle) << "\n";
+		int nparticles = pfos->getNumberOfElements();
+		int counter = 0;
+		vector< ReconstructedParticle * > jetPositive;
+		vector< ReconstructedParticle * > jetNegative;
+		for (unsigned int i = 0; i < nparticles; i++) 
+		{
+			ReconstructedParticle * particle = dynamic_cast< ReconstructedParticle * >(pfos->getElementAt(i));
+			float angle = MathOperator::getAngleBtw(taxis, particle->getMomentum());
+			//std::cout << "Angle: " << angle << "\n";
+			if (angle > 3.1416/2) 
+			{
+				jetPositive.push_back(particle);
+				counter++;
+			}
+			else 
+			{
+				jetNegative.push_back(particle);
+			}
+		}
+		std::cout << "In positive direction " << counter << " particles, in negative - " << nparticles - counter << "\n";
+		_stats._ZZMass1 = getMass(jetPositive);
+		_stats._ZZMass2 = getMass(jetNegative);
+		std::cout << "Mass_+: " << _stats._ZZMass1 << " Mass_-: " << _stats._ZZMass2 << "\n";
+	}
+	float TTBarProcessor::getMass(std::vector< EVENT::ReconstructedParticle * > & hemisphere)
+	{
+		float mass = 0.0;
+		float energy  = 0.0;
+		float momentum[3] = { 0., 0., 0.};
+		for (unsigned int i = 0; i < hemisphere.size(); i++) 
+		{
+			energy += hemisphere[i]->getEnergy();
+			momentum[0] += hemisphere[i]->getMomentum()[0];
+			momentum[1] += hemisphere[i]->getMomentum()[1];
+			momentum[2] += hemisphere[i]->getMomentum()[2];
+		}
+		mass = std::sqrt(energy * energy - momentum[0] * momentum[0] - momentum[1]*momentum[1] - momentum[2] * momentum[2] );
+		
+		return mass;
+	}
+	void TTBarProcessor::getZZ(LCCollection * fourjetcol)
+	{
+		if (!fourjetcol || fourjetcol->getNumberOfElements() < 4) 
+		{
+			return;
+		}
+		int njets = fourjetcol->getNumberOfElements();
+
+		vector<ReconstructedParticle * > jets;
+		vector<float> masses;
+		float average = 0.0;
+		for (unsigned int i = 0; i < njets; i++) 
+		{
+			ReconstructedParticle * jetpart = dynamic_cast< ReconstructedParticle * >(fourjetcol->getElementAt(i));
+			jets.push_back(jetpart);
+			masses.push_back(jetpart->getMass());
+			//average += std::sqrt(std::pow(jetpart->getEnergy(),2) -std::pow( MathOperator::getModule(jetpart->getMomentum()),2));
+			//std::cout << "m_" << i << ": " << std::sqrt(std::pow(jetpart->getEnergy(),2) -std::pow( MathOperator::getModule(jetpart->getMomentum()),2)) << "\n";
+		}
+		std::sort(jets.begin(), jets.end(), sortByEnergy);
+
+		int n = 0;
+		vector< vector<float> > differences;
+		/*vector<ReconstructedParticle * > jetsZ1;
+		jetsZ1.push_back(jets[0]);
+		jetsZ1.push_back(jets[1]);
+		vector<ReconstructedParticle * > jetsZ2;
+		jetsZ2.push_back(jets[2]);
+		jetsZ2.push_back(jets[3]);
+		float mass1 = getMass(jetsZ1);
+		float mass2 = getMass(jetsZ2);
+		vector<float> pair1;
+		pair1.push_back(mass1);
+		pair1.push_back(mass2);
+		differences.push_back(pair1);*/
+
+		vector<ReconstructedParticle * > jetsZ3;
+		jetsZ3.push_back(jets[0]);
+		jetsZ3.push_back(jets[2]);
+		vector<ReconstructedParticle * > jetsZ4;
+		jetsZ4.push_back(jets[1]);
+		jetsZ4.push_back(jets[3]);
+		float mass3 = getMass(jetsZ3);
+		float mass4 = getMass(jetsZ4);
+		vector<float> pair2;
+		pair2.push_back(mass3);
+		pair2.push_back(mass4);
+		differences.push_back(pair2);
+		
+		vector<ReconstructedParticle * > jetsZ5;
+		jetsZ5.push_back(jets[0]);
+		jetsZ5.push_back(jets[3]);
+		vector<ReconstructedParticle * > jetsZ6;
+		jetsZ6.push_back(jets[1]);
+		jetsZ6.push_back(jets[2]);
+		float mass5 = getMass(jetsZ5);
+		float mass6 = getMass(jetsZ6);
+		vector<float> pair3;
+		pair3.push_back(mass5);
+		pair3.push_back(mass6);
+		differences.push_back(pair3);
+		
+		std::cout << "Masses: " //<< mass1 << " & " << mass2 << "; "
+					<< mass3 << " & " << mass4 << "; "
+					<< mass5 << " & " << mass6 << ";\n";
+		float mindiff = 1000.;
+		int chosen = -1;
+		for (unsigned int i = 0; i < differences.size(); i++) 
+		{
+			float diff = abs(differences[i][0] - differences[i][1]);
+			if (diff < mindiff) 
+			{
+				mindiff = diff;
+				chosen = i;
+			}
+		}
+		_stats._ZZMass1 = differences[chosen][0];
+		_stats._ZZMass2 = differences[chosen][1];
+
+		for (unsigned int i = 0; i < njets; i++) 
+		{
+			for (unsigned int j = 1; j < i; j++) 
+			{
+				
+			}
+		}
+		/*for (unsigned int i = 1; i < njets; i++) 
+		{
+			for (unsigned int j = 0; j < i; j++) 
+			{
+				float ei = jets[i]->getEnergy();
+				float ej = jets[j]->getEnergy();
+				float momentum = 0.;
+				for (unsigned int k = 0; k < 3; k++) 
+				{
+					momentum+= jets[i]->getMomentum()[k]*jets[j]->getMomentum()[k];
+				}
+				float mass = std::sqrt(ei*ej - momentum);
+				average += mass;
+				massesZ.push_back(mass);
+				n++;
+				std::cout << "Z_" << i << "|" << j << ": " << mass << "\n";
+			}
+		}
+		float deviation = 0.0;
+		for (unsigned int i = 0; i < masses.size(); i++) 
+		{
+			deviation += std::pow(average / n - massesZ[i],2);
+		}
+		_stats._bbbar4JetMass = average / n;//average / n;*/
+
 	}
 
 }

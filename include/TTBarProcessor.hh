@@ -21,6 +21,7 @@
 #include <TTree.h>
 
 #include "MathOperator.hh"
+#include "ClusteringOperator.hh"
 #include "VertexChargeOperator.hh"
 #include "QQBarMCOperator.hh"
 #include "TopQuark.hh"
@@ -99,11 +100,15 @@ namespace TTBarProcessor
 	  void PrintParticle(EVENT::ReconstructedParticle * particle);
 	  void PrintParticle(EVENT::MCParticle * particle);
 	  void ComputeChargeTVCM(TopQuark * top, TopQuark * top2, VertexChargeOperator & vtxOperator);
+	  float getChargeBalance(RecoJet * jet);
 	  EVENT::ReconstructedParticle * findPhoton(LCCollection * pfocol);
+	  void getZZ(LCCollection * fourjetcol);
+	  void getThrust(std::vector<float> & thrust, LCCollection * fourjetcol);
 //	  bool sortByBtag(const RecoJet &lhs, const RecoJet &rhs) {return lhs.GetBTag() < rhs.GetBTag(); }
 	 protected:
 	  std::string intToStr(int * number);
 	  std::vector<int> getOpposite(int i, int j);
+	  float getMass(std::vector< EVENT::ReconstructedParticle * > & hemisphere);
 	  /** Input collection name.
 	   */
 	  int _type;
@@ -139,6 +144,9 @@ namespace TTBarProcessor
 	  TTree * _hTree;
 	  TTree * _hGenTree;
 	  TTree * _hSumTree;
+	  TTree * _hBkgTree;
+
+	  int _bkgPDGs[4];
 
 	  float _totalEnergy;
 	  float _missedEnergy;
@@ -151,6 +159,10 @@ namespace TTBarProcessor
 	bool sortByCostheta(RecoJet *lhs, RecoJet *rhs) 
 	{
 	  	return std::abs(lhs->GetCostheta()) >  std::abs(rhs->GetCostheta()); 
+	}
+	bool sortByEnergy(EVENT::ReconstructedParticle *lhs, EVENT::ReconstructedParticle *rhs) 
+	{
+	  	return std::abs(lhs->getEnergy()) >  std::abs(rhs->getEnergy()); 
 	}
 		
 } /* TTbarAnalisys */

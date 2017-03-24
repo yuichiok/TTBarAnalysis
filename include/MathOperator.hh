@@ -41,6 +41,7 @@ namespace TTBarProcessor
 			static float getDistanceTo(const std::vector< int > & vectorPoint1,const std::vector< float > & vector1, const std::vector< int > * pointOfLine );
 			static float getDistanceTo(const double * vectorPoint1, std::vector< float > & vector1,const double * pointOfLine );
 			
+			static std::vector< float > getDirection(const std::vector< float > & vectorPoint);
 			static std::vector< float > getDirection(std::vector< int > & vectorPoint1, std::vector< int > & vectorPoint2);
 			static std::vector< float > getDirection(const double * vectorPoint1, const double * vectorPoint2);
 			static std::vector< float > getDirection(const double * vectorPoint);
