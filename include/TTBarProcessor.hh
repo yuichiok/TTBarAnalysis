@@ -94,6 +94,7 @@ namespace TTBarProcessor
 	  void ComputeChargeLepton(TopQuark * top, TopQuark * top2);
 	  void __ComputeChargeCheat(TopQuark * top, TopQuark * top2);
 	  void test(TopQuark * top, TopQuark * top2);
+	  float getChi2(TopQuark * c, std::vector<float> & eachchi2);
 	  float getChi2(TopQuark * c);
 	  void DecideOnAsymmetry(TopQuark * top, TopQuark * top2);
 	  void ClearVariables();
@@ -105,6 +106,7 @@ namespace TTBarProcessor
 	  void getZZ(LCCollection * fourjetcol);
 	  void getThrust(std::vector<float> & thrust, LCCollection * fourjetcol);
 //	  bool sortByBtag(const RecoJet &lhs, const RecoJet &rhs) {return lhs.GetBTag() < rhs.GetBTag(); }
+	  void ComputeTopParameters(TopQuark * top1, TopQuark * top2);
 	 protected:
 	  std::string intToStr(int * number);
 	  std::vector<int> getOpposite(int i, int j);

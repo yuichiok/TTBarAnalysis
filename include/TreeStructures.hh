@@ -120,12 +120,18 @@ namespace TTBarProcessor
 		int _methodTaken[6];
 		int _methodSameCharge[6];
 		int _methodZeroCharge[6];
-		float _chiHad;
-		float _chiTopMass;
-		float _chiTopE;
-		float _chiPbstar;
-		float _chiCosWb;
-		float _chiGammaT;
+		float _chiHad1;
+		float _chiTopMass1;
+		float _chiTopE1;
+		float _chiPbstar1;
+		float _chiCosWb1;
+		float _chiGammaT1;
+		float _chiHad2;
+		float _chiTopMass2;
+		float _chiTopE2;
+		float _chiPbstar2;
+		float _chiCosWb2;
+		float _chiGammaT2;
 
 		int _MCBOscillation;
 		int _MCBBarOscillation;
@@ -189,7 +195,8 @@ namespace TTBarProcessor
 			_Top1mass = -1.0;
 			_W1mass = -1.0;
 			_W2costheta = -2.0;
-			_chiHad = -1.0;
+			_chiHad1 = -1.0;
+			_chiHad2 = -1.0;
 			_methodUsed = 0;
 			_methodRefused = 0;
 			_methodZero = 0;
