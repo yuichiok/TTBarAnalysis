@@ -2178,7 +2178,7 @@ namespace TTBarProcessor
 			_stats._Top1bntracks = top1->GetNumberOfVertexParticles();
 			_stats._Top1btag = top1->GetBTag();
 			vector<float> bdirection1 = MathOperator::getDirection(top1->GetB()->getMomentum());
-			_stats._Top1bcostheta =std::abs( std::cos( MathOperator::getAngles(bdirection1)[1] ));
+			_stats._Top1bcostheta = std::cos( MathOperator::getAngles(bdirection1)[1] );
 			//_stats._Top1bTVCM = top1->GetResultTVCM();
 			_stats._Top1cosWb = std::cos( MathOperator::getAngle(top1->GetB()->getMomentum(), top1->GetW()->getMomentum()) );
 			//_stats._Top1Kaon = (top1->GetComputedCharge().ByTVCM )? 1:0;
@@ -2196,7 +2196,7 @@ namespace TTBarProcessor
 			_stats._Top2bntracks = top2->GetNumberOfVertexParticles();
 			_stats._Top2btag = top2->GetBTag();
 			vector<float> bdirection2 = MathOperator::getDirection(top2->GetB()->getMomentum());
-			_stats._Top2bcostheta =std::abs( std::cos( MathOperator::getAngles(bdirection2)[1] ));
+			_stats._Top2bcostheta = std::cos( MathOperator::getAngles(bdirection2)[1] );
 			//_stats._Top2bTVCM = top2->GetResultTVCM();
 			_stats._Top1cosWb = std::cos( MathOperator::getAngle(top2->GetB()->getMomentum(), top2->GetW()->getMomentum()) );
 			//_stats._Top2Kaon = (top2->GetComputedCharge().ByTVCM )? 1:0;
