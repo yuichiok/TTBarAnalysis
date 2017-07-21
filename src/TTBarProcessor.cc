@@ -2215,5 +2215,6 @@ namespace TTBarProcessor
 			_stats._chiCosWb2 = eachchi2[3] ;
 			_stats._chiGammaT2 = eachchi2[4] ;
 			std::cout << "chiHad2:" << _stats._chiHad2 << " chiTopMass2:" << _stats._chiTopMass2 << " chiTopE2:" << _stats._chiTopE2 << " chiPbstar2:" << _stats._chiPbstar2 << std::endl;
+			std::cout << "_qMCBcostheta = " << _stats._qMCBcostheta[0] << std::endl;
 	}
 }

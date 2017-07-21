@@ -20,7 +20,9 @@ int main( int argc, char **argv ){
 #endif
 
 
-	string rootfilename = "TTBarProcessorLeftGamma.root" ;
+	string rootfilename = "TTBarProcessor_eRpL.root" ;
+	//string rootfilename = "TTBarProcessor_eRpL_yycyyu.root" ;
+	//string rootfilename = "TTBarProcessor_eLpR_yyuyyc.root" ;
 	string treename = "Stats" ;
 
 	TFile file( rootfilename.c_str() ) ;
@@ -76,12 +78,18 @@ int main( int argc, char **argv ){
 
 	TCanvas* c1 = new TCanvas( "c1", "c1", 1280, 480 ) ;
 	TH1F* htop = new TH1F( "htop", "top polar angle (reconstructed)", 40, -1, 1 ) ;
+	htop->SetMinimum(0) ;
 	htop->SetLineColor(2) ;
 	TH1F* hbottom = new TH1F( "hbottom", "bottom polar angle (reconstructed)", 40, -1, 1 ) ;
+	hbottom->SetMinimum(0) ;
 	hbottom->SetLineColor(2) ;
 	TH1F* htopgen = new TH1F( "htopgen", "top polar angle (generated)", 40, -1, 1 ) ;
+	htopgen->SetMinimum(0) ;
+	htopgen->SetMaximum(0.12) ;
 	htopgen->SetLineColor(4) ;
 	TH1F* hbottomgen = new TH1F( "hbottomgen", "bottom polar angle (generated)", 40, -1, 1 ) ;
+	hbottomgen->SetMinimum(0) ;
+	hbottomgen->SetMaximum(0.12) ;
 	hbottomgen->SetLineColor(4) ;
 
 	double fillweight = (double)1/usednum ;
@@ -151,7 +159,7 @@ int main( int argc, char **argv ){
 
 	c1->WaitPrimitive() ;
 
-//	c1->Print( "picture/newpicture.png" ) ;
+	c1->Print( "picture/newpicture.png" ) ;
 
 
 	return 0;
