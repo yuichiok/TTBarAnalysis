@@ -1,0 +1,51 @@
+<marlin>
+
+<!--########  Execute  ####################################### -->
+<execute>
+   <processor name="MyTTbarAnalisys"/>
+</execute>
+
+
+<!--########  Global  ######################################## -->
+<global>
+<parameter name="LCIOInputFiles">
+<!-- INPUT.slcio -->
+<!--/hsm/ilc/grid/storm/prod/ilc/mc-dbd/ild/dst/500-TDR_ws/6f_ttbar/ILD_o1_v05/v01-16-p05_500/rv01-16-p05_500.sv01-14-01-p00.mILD_o1_v05.E500-TDR_ws.I36910.P6f_yyuyyc.eL.pR-00002-DST.slcio
+/home/ilc/yokugawa/VertexRestorer/aftervertexrestoretest.slcio
+
+/data/flc/yasui/aftervertexrestore_hadroic_eRpL_yyuyyc_00001.slcio
+/data/flc/yasui/aftervertexrestore_hadroic_eRpL_yyuyyc_00002.slcio
+/data/flc/yasui/aftervertexrestore_hadroic_eRpL_yyuyyc_00003.slcio
+/data/flc/yasui/aftervertexrestore_hadroic_eRpL_yycyyu_00001.slcio
+/data/flc/yasui/aftervertexrestore_hadroic_eRpL_yycyyu_00002.slcio
+/data/flc/yasui/aftervertexrestore_hadroic_eRpL_yycyyu_00003.slcio
+/data/flc/bilokin/Training/DSTleft-hadronique.slcio-->
+</parameter>
+<parameter name="MaxRecordNumber" value="0" />  
+<parameter name="SkipNEvents" value="0"/>
+<parameter name="GearXMLFile" value="GearOutput.xml"/>
+<parameter name="SupressCheck" value="false"/>
+<parameter name="Verbosity" options="DEBUG0-4,MESSAGE0-4,WARNING0-4,ERROR0-4,SILENT"> Silent</parameter>
+<parameter name="RandomSeed" value="1234567890" />
+</global>
+
+
+<!--########  Processor  ######################################## -->
+<processor name="MyTTbarAnalisys" type="TTbarAnalisys">
+  <parameter name="ROOTFileName" type="string">
+  <!-- OUTPUT.root -->
+  </parameter>
+  <parameter name="MassCut" type="float"> 200 </parameter>
+  <parameter name="AnalysisType" type="int"> 1 </parameter>
+  <parameter name="PFOCollection" type="string"> PandoraPFOs </parameter>
+  <!-- JetCollectionName -->
+  <!--parameter name="JetCollectionName" type="string"> RecoveredJets </parameter-->
+  <parameter name="JetCollectionName" type="string"> FinalJets </parameter>
+  <!-- JetRelCollectionName -->
+  <!--parameter name="JetRelCollectionName" type="string"> RecoveredJets_rel </parameter-->
+  <parameter name="JetRelCollectionName" type="string"> FinalJets_rel </parameter>
+  <parameter name="MCCollectionName" type="string"> MCParticlesSkimmed </parameter>
+  <parameter name="RecoMcTruthCollectionName" type="string"> RecoMCTruthLink </parameter>
+</processor>
+
+</marlin>
