@@ -92,6 +92,8 @@ namespace TTBarProcessor
 		}
 		myBquarkPair.push_back(b);
 		myBquarkPair.push_back(bbar);
+		myWPair.push_back(wplus);
+		myWPair.push_back(wminus);
 		MCParticle * top = CombineParticles(b, wplus);
 		topBangle = MathOperator::getAngle(top->getMomentum(), b->getMomentum());
 		MCParticle * topbar = CombineParticles(bbar, wminus);
@@ -99,6 +101,10 @@ namespace TTBarProcessor
 		pair.push_back(top);
 		pair.push_back(topbar);
 		return pair;
+	}
+	vector< MCParticle * > QQBarMCOperator::GetWPair()
+	{
+		return myWPair;
 	}
 	vector< MCParticle * > QQBarMCOperator::GetBquarkPair()
 	{
@@ -114,6 +120,14 @@ namespace TTBarProcessor
 			momentum[i] = b->getMomentum()[i] + w->getMomentum()[i];
 		}
 		double charge = b->getCharge() + w->getCharge();
+		if (abs(b->getPDG())< 5 && abs(w->getPDG()) < 5) 
+		{
+			result->setGeneratorStatus(1);
+		}
+		else 
+		{
+			result->setGeneratorStatus(0);
+		}
 		double mass = std::sqrt(energy * energy - momentum[0] * momentum[0] - momentum[1]*momentum[1] - momentum[2] * momentum[2] );
 		int pdg = charge / std::abs(charge) * 6;
 		//result->setEnergy(energy);
@@ -200,5 +214,33 @@ namespace TTBarProcessor
 	MCParticle * QQBarMCOperator::GetNeutrino()
 	{
 		return myNeutrino;
+	}
+	MCParticle * QQBarMCOperator::GetTauLepton()
+	{
+		MCParticle * tau = FindParticle(15);
+		MCParticle * taubar = FindParticle(-15);
+		MCParticle * particle = (tau)? tau : taubar;
+		if (!particle) 
+		{
+			return NULL;
+		}
+		MCParticle * result = NULL;
+		if (particle->getDaughters().size() == 1 && abs(particle->getDaughters()[0]->getPDG()) == 15) 
+		{
+			particle = particle->getDaughters()[0];
+		}
+		if (particle->getDaughters().size() == 3) 
+		{
+			for (unsigned int i = 0; i < particle->getDaughters().size(); i++) 
+			{
+				if (abs(particle->getDaughters()[i]->getPDG()) == 13) 
+				{
+					std::cout << "Particle tau found!\n";
+					result = particle->getDaughters()[i];
+					break;
+				}
+			}
+		}
+		return result;
 	}
 }
