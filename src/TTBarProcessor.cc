@@ -824,7 +824,7 @@ namespace TTBarProcessor
 			}
 		}//
 		//float chi2 = _stats._chiTopMass + _stats._chiTopE + _stats._chiGammaT + _stats._chiCosWb + _stats._chiPbstar;
-		/*float chi2 =  _stats._chiGammaT + _stats._chiCosWb + _stats._chiPbstar;
+		float chi2 =  _stats._chiGammaT + _stats._chiCosWb + _stats._chiPbstar;
 		//if (top2->GetComputedCharge().ByLepton &&  _stats._Top1gamma > gammacut1+0.1  && goodcharge.size() == 0) 
 		if (top2->GetComputedCharge().ByLepton &&  chi2 < 15) 
 		{
@@ -837,7 +837,7 @@ namespace TTBarProcessor
 			//_stats._methodTaken[0] = 7;
 			//_summary._nAfterKinematicCuts++;
 			//return;
-		}//*/
+		}//
 		_stats._methodRefused = samecharge.size();
 		_stats._methodUsed = goodcharge.size();
 		if (samecharge.size() > 0) 
