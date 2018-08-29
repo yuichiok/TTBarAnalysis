@@ -84,7 +84,7 @@ namespace TTBarProcessor
 	  void AnalyseTTBarHadronic(LCEvent * evt);
 	  void AnalyseBBBar(LCEvent * evt);
 
-	  void Match(std::vector< EVENT::MCParticle * > & mctops, TopQuark * topHadronic,  TopQuark * top2 =NULL );
+	  void Match(std::vector< EVENT::MCParticle * > & mctops, std::vector< EVENT::MCParticle * > & mcbs, std::vector< EVENT::MCParticle * > & mcws, TopQuark * topHadronic,  TopQuark * top2 =NULL );
 	  void MatchB(std::vector< RecoJet * > *jets, std::vector< EVENT::MCParticle * > & mcbs, LCCollection * mcvtxcol = NULL);
 	  void MatchB(std::vector< EVENT::MCParticle * > & mcbs, TopQuark * topHadronic, TopQuark * top2 =NULL, LCCollection * mcvtxcol = NULL);
 	  void PrintJet(RecoJet * jet);
@@ -93,8 +93,7 @@ namespace TTBarProcessor
 	  void ComputeCharge(TopQuark * top, TopQuark * top2);
 	  void ComputeChargeLepton(TopQuark * top, TopQuark * top2);
 	  void __ComputeChargeCheat(TopQuark * top, TopQuark * top2);
-	  void test(TopQuark * top, TopQuark * top2);
-	  float getChi2(TopQuark * c, std::vector<float> & eachchi2);
+	  void test(TopQuark * top, TopQuark * top2, std::vector< RecoJet * > *jets = NULL, std::vector< RecoJet * > *jets2 = NULL, EVENT::ReconstructedParticle * particlei = NULL);
 	  float getChi2(TopQuark * c);
 	  void DecideOnAsymmetry(TopQuark * top, TopQuark * top2);
 	  void ClearVariables();
@@ -102,11 +101,10 @@ namespace TTBarProcessor
 	  void PrintParticle(EVENT::MCParticle * particle);
 	  void ComputeChargeTVCM(TopQuark * top, TopQuark * top2, VertexChargeOperator & vtxOperator);
 	  float getChargeBalance(RecoJet * jet);
-	  EVENT::ReconstructedParticle * findPhoton(LCCollection * pfocol);
+	  EVENT::ReconstructedParticle * findPhoton(LCCollection * pfocol, std::vector< RecoJet * > *jets = NULL);
 	  void getZZ(LCCollection * fourjetcol);
 	  void getThrust(std::vector<float> & thrust, LCCollection * fourjetcol);
 //	  bool sortByBtag(const RecoJet &lhs, const RecoJet &rhs) {return lhs.GetBTag() < rhs.GetBTag(); }
-	  void ComputeTopParameters(TopQuark * top1, TopQuark * top2);
 	 protected:
 	  std::string intToStr(int * number);
 	  std::vector<int> getOpposite(int i, int j);

@@ -36,6 +36,8 @@ namespace TTBarProcessor
 			EVENT::MCParticle * CombineParticles(EVENT::MCParticle * b, EVENT::MCParticle * w);
 			EVENT::MCParticle * FindParticle(int pdg);
 			std::vector< EVENT::MCParticle * > GetBquarkPair();
+			std::vector< EVENT::MCParticle * > GetWPair();
+			EVENT::MCParticle * GetTauLepton();
 			EVENT::MCParticle * GetNeutrino();
 
 		private:
@@ -44,6 +46,7 @@ namespace TTBarProcessor
 		//
 			EVENT::LCCollection * myCollection;
 			std::vector< EVENT::MCParticle * > myBquarkPair;
+			std::vector< EVENT::MCParticle * > myWPair;
 			EVENT::MCParticle * myNeutrino;
 		//
 		//	Private methods
