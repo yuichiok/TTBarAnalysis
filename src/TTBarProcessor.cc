@@ -233,7 +233,7 @@ namespace TTBarProcessor
 		vector<float> bdirection = MathOperator::getDirection(mcb[0]->getMomentum());
 		vector<float> bdirectionbar = MathOperator::getDirection(mcb[1]->getMomentum());
 		_stats._qMCBcostheta[0] =  std::cos( MathOperator::getAngles(bdirection)[1] );
-		_stats._qMCBcostheta[1] =  std::cos( MathOperator::getAngles(bdirectionbar)[1] );
+		_stats._qMCBcostheta[1] =  -std::cos( MathOperator::getAngles(bdirectionbar)[1] );
 		_stats._qMCcostheta[0] = _stats._MCTopcostheta;//(std::abs(_stats._qMCBcostheta[0]) < 0.9 )? _stats._MCTopcostheta: -2;
 		_stats._qMCcostheta[1] = -_stats._MCTopBarcostheta;//(std::abs(_stats._qMCBcostheta[1]) < 0.9 )? -_stats._MCTopBarcostheta : -2;
 		_hGenTree->Fill();
