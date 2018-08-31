@@ -122,6 +122,7 @@ namespace TTBarProcessor
 		float _Top2leptonE;
 		float _Top2leptonCos;
 		int _Top2leptonCorrect;
+		float _qBCostheta[2];
 		float _qCostheta[2];
 		float _qCostheta1;
 		float _qCostheta2;
@@ -210,6 +211,8 @@ namespace TTBarProcessor
 			_methodRefused = 0;
 			_methodZero = 0;
 			_methodCorrect = -1;
+			_qBCostheta[0] = -2.0;
+			_qBCostheta[1] = -2.0;
 			_qCostheta[0] = -2.0;
 			_qCostheta[1] = -2.0;
 			_ZZMass1 = -1;

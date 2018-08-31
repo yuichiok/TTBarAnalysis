@@ -153,6 +153,7 @@ namespace TTBarProcessor
 		_hTree->Branch("methodCorrect", &data._methodCorrect, "methodCorrect/I");
 		_hTree->Branch("methodSameCharge", data._methodSameCharge, "methodSameCharge[methodRefused]/I");
 		_hTree->Branch("methodTaken", data._methodTaken, "methodTaken[methodUsed]/I");
+		_hTree->Branch("qBCostheta", data._qBCostheta, "qBCostheta[2]/F");
 		_hTree->Branch("qCostheta", data._qCostheta, "qCostheta[2]/F");
 		_hTree->Branch("chiHad", &data._chiHad, "chiHad/F");
 		_hTree->Branch("chiTopMass", &data._chiTopMass, "chiTopMass/F");
