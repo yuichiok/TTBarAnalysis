@@ -884,8 +884,8 @@ namespace TTBarProcessor
 				}
 
 				//qBCostheta implimented
-				_stats._qBCostheta[0] = (sum < 0)? _stats._Top1bcostheta: - _stats._Top1bcostheta;
-				_stats._qBCostheta[0] = (sum > 0)? -_stats._Top1bcostheta:  _stats._Top1bcostheta;
+				_stats._qBCostheta[0] = (sum > 0)? _stats._Top1bcostheta: - _stats._Top1bcostheta;
+				_stats._qBCostheta[0] = (sum < 0)? -_stats._Top1bcostheta:  _stats._Top1bcostheta;
 
 				_stats._qCostheta[0] = (sum < 0)? _stats._Top1costheta: - _stats._Top1costheta;
 				_stats._qCostheta[0] = (sum > 0)? -_stats._Top1costheta:  _stats._Top1costheta;
