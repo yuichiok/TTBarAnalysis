@@ -516,7 +516,9 @@ namespace TTBarProcessor
 		_stats._W1gamma = top1->GetW()->getEnergy()/top1->GetW()->getMass();
 		float Top1nvtx = top1->GetNumberOfVertices();
 		vector<float> bdirection = MathOperator::getDirection(top1->GetB()->getMomentum());
-		_stats._Top1bcostheta =std::abs( std::cos( MathOperator::getAngles(bdirection)[1] ));
+		// no abs
+		//_stats._Top1bcostheta =std::abs( std::cos( MathOperator::getAngles(bdirection)[1] ));
+		_stats._Top1bcostheta = std::cos( MathOperator::getAngles(bdirection)[1] );
 		std::cout << "Top charge: " << _stats._Top1bcharge
 			  << " top pB: " << _stats._Top1bmomentum
 			  << " top W: " <<  MathOperator::getModule(top1->GetW()->getMomentum())//_stats._Top1bmomentum
@@ -884,8 +886,11 @@ namespace TTBarProcessor
 				}
 
 				//qBCostheta implimented
-				_stats._qBCostheta[0] = (sum > 0)? _stats._Top1bcostheta: - _stats._Top1bcostheta;
-				_stats._qBCostheta[0] = (sum < 0)? -_stats._Top1bcostheta:  _stats._Top1bcostheta;
+				//_stats._qBCostheta[0] = (_stats._Top1bcharge < 0)? _stats._Top1bcostheta: - _stats._Top1bcostheta;
+				//_stats._qBCostheta[0] = (_stats._Top1bcharge > 0)? -_stats._Top1bcostheta:  _stats._Top1bcostheta;
+				
+				_stats._qBCostheta[0] = (sum < 0)? _stats._Top1bcostheta: - _stats._Top1bcostheta;
+				_stats._qBCostheta[0] = (sum > 0)? -_stats._Top1bcostheta:  _stats._Top1bcostheta;
 
 				_stats._qCostheta[0] = (sum < 0)? _stats._Top1costheta: - _stats._Top1costheta;
 				_stats._qCostheta[0] = (sum > 0)? -_stats._Top1costheta:  _stats._Top1costheta;
