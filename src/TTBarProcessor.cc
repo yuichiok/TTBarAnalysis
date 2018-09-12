@@ -115,7 +115,7 @@ namespace TTBarProcessor
 		_hGenTree->Branch("MCMass", &_stats._MCMass, "MCMass/F");
 		_hGenTree->Branch("MCPDG", &_stats._MCPDG, "MCPDG/F");
 		_hGenTree->Branch("MCquarkAngle", &_stats._MCquarkAngle, "MCMass/F");
-		_hGenTree->Branch("MCBcostheta", _stats._qMCBcostheta, "MCBcostheta[2]/F");
+		_hGenTree->Branch("qMCBcostheta", _stats._qMCBcostheta, "qMCBcostheta[2]/F");
 		_hGenTree->Branch("MCLeptonPDG", &_stats._MCLeptonPDG, "MCLeptonPDG/I");
 		_hTree = new TTree( "Stats", "tree" );
 		switch(_analysisType)
