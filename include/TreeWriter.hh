@@ -27,7 +27,6 @@ namespace TTBarProcessor
 			void InitializeSummaryTree(TTree * tree, SummaryData & data);
 			void InitializeStatsTree(TTree * tree, StatsData & data);
 			void InitializeStatsBBBarTree(TTree * tree, StatsData & data);
-			void InitializeStatsHadronicTree(TTree * tree, StatsData & data);
 		private:
 		//
 		//	Data

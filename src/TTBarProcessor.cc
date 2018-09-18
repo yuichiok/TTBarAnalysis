@@ -115,7 +115,7 @@ namespace TTBarProcessor
 		_hGenTree->Branch("MCMass", &_stats._MCMass, "MCMass/F");
 		_hGenTree->Branch("MCPDG", &_stats._MCPDG, "MCPDG/F");
 		_hGenTree->Branch("MCquarkAngle", &_stats._MCquarkAngle, "MCMass/F");
-		_hGenTree->Branch("MCBcostheta", _stats._qMCBcostheta, "MCBcostheta[2]/F");
+		_hGenTree->Branch("qMCBcostheta", _stats._qMCBcostheta, "qMCBcostheta[2]/F");
 		_hGenTree->Branch("MCLeptonPDG", &_stats._MCLeptonPDG, "MCLeptonPDG/I");
 		_hTree = new TTree( "Stats", "tree" );
 		switch(_analysisType)
@@ -233,7 +233,7 @@ namespace TTBarProcessor
 		vector<float> bdirection = MathOperator::getDirection(mcb[0]->getMomentum());
 		vector<float> bdirectionbar = MathOperator::getDirection(mcb[1]->getMomentum());
 		_stats._qMCBcostheta[0] =  std::cos( MathOperator::getAngles(bdirection)[1] );
-		_stats._qMCBcostheta[1] =  std::cos( MathOperator::getAngles(bdirectionbar)[1] );
+		_stats._qMCBcostheta[1] =  -std::cos( MathOperator::getAngles(bdirectionbar)[1] );
 		_stats._qMCcostheta[0] = _stats._MCTopcostheta;//(std::abs(_stats._qMCBcostheta[0]) < 0.9 )? _stats._MCTopcostheta: -2;
 		_stats._qMCcostheta[1] = -_stats._MCTopBarcostheta;//(std::abs(_stats._qMCBcostheta[1]) < 0.9 )? -_stats._MCTopBarcostheta : -2;
 		_hGenTree->Fill();
@@ -516,7 +516,9 @@ namespace TTBarProcessor
 		_stats._W1gamma = top1->GetW()->getEnergy()/top1->GetW()->getMass();
 		float Top1nvtx = top1->GetNumberOfVertices();
 		vector<float> bdirection = MathOperator::getDirection(top1->GetB()->getMomentum());
-		_stats._Top1bcostheta =std::abs( std::cos( MathOperator::getAngles(bdirection)[1] ));
+		// no abs
+		//_stats._Top1bcostheta =std::abs( std::cos( MathOperator::getAngles(bdirection)[1] ));
+		_stats._Top1bcostheta = std::cos( MathOperator::getAngles(bdirection)[1] );
 		std::cout << "Top charge: " << _stats._Top1bcharge
 			  << " top pB: " << _stats._Top1bmomentum
 			  << " top W: " <<  MathOperator::getModule(top1->GetW()->getMomentum())//_stats._Top1bmomentum
@@ -824,7 +826,7 @@ namespace TTBarProcessor
 			}
 		}//*/
 		//float chi2 = _stats._chiTopMass + _stats._chiTopE + _stats._chiGammaT + _stats._chiCosWb + _stats._chiPbstar;
-		/*float chi2 =  _stats._chiGammaT + _stats._chiCosWb + _stats._chiPbstar;
+		float chi2 =  _stats._chiGammaT + _stats._chiCosWb + _stats._chiPbstar;
 		//if (top2->GetComputedCharge().ByLepton &&  _stats._Top1gamma > gammacut1+0.1  && goodcharge.size() == 0) 
 		if (top2->GetComputedCharge().ByLepton &&  chi2 < 15) 
 		{
@@ -837,7 +839,7 @@ namespace TTBarProcessor
 			//_stats._methodTaken[0] = 7;
 			//_summary._nAfterKinematicCuts++;
 			//return;
-		}//*/
+		}//
 		_stats._methodRefused = samecharge.size();
 		_stats._methodUsed = goodcharge.size();
 		if (samecharge.size() > 0) 
@@ -882,6 +884,14 @@ namespace TTBarProcessor
 				{
 					_summary._nAfterKinematicCuts++;
 				}
+
+				//qBCostheta implimented
+				//_stats._qBCostheta[0] = (_stats._Top1bcharge < 0)? _stats._Top1bcostheta: - _stats._Top1bcostheta;
+				//_stats._qBCostheta[0] = (_stats._Top1bcharge > 0)? -_stats._Top1bcostheta:  _stats._Top1bcostheta;
+				
+				_stats._qBCostheta[0] = (sum < 0)? _stats._Top1bcostheta: - _stats._Top1bcostheta;
+				_stats._qBCostheta[0] = (sum > 0)? -_stats._Top1bcostheta:  _stats._Top1bcostheta;
+
 				_stats._qCostheta[0] = (sum < 0)? _stats._Top1costheta: - _stats._Top1costheta;
 				_stats._qCostheta[0] = (sum > 0)? -_stats._Top1costheta:  _stats._Top1costheta;
 				_stats._qCostheta1 = (sum < 0)? _stats._Top1costheta: - _stats._Top1costheta;
