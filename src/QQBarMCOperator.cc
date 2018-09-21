@@ -65,7 +65,8 @@ namespace TTBarProcessor
 				std::cout << "CRUNCH\n";
 				return pair; // CRUNCH
 			}
-			for (int i = 0; i < final.size(); i++) 
+			int finalsize = final.size();
+			for (int i = 0; i < finalsize; i++) 
 			{
 				for (int j = 0; j < i; j++) 
 				{

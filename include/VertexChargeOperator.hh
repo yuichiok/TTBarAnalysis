@@ -25,7 +25,7 @@ namespace TTBarProcessor
 		//
 		//	Constructors
 		//
-			VertexChargeOperator (LCCollection * pfo, EVENT::LCCollection * rel = NULL) ;
+			VertexChargeOperator (EVENT::LCCollection * pfo, EVENT::LCCollection * rel = NULL) ;
 			virtual ~VertexChargeOperator () { delete myPIDHandler; };
 		//
 		//	Methods
